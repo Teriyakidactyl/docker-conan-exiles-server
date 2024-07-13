@@ -96,7 +96,7 @@ RUN set -eux; \
     ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" $APP_FILES/ConanSandbox ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Config" $APP_FILES/ConanSandbox ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" $APP_FILES/ConanSandbox ;\
-    ls -sf "$LOGS/$APP_FILES/" $WORLD_FILES/$SERVER_NAME/Saved/Logs ;\
+    ls -sf "$APP_LOGS" $WORLD_FILES/$SERVER_NAME/Saved/Logs ;\
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
     \
