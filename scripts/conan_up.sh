@@ -23,7 +23,7 @@ main() {
     # Infinite loop while APP_PID is running
     # FIXME this loop is likely breaking due to xfvb > wine > conan redirects
     # while kill -0 $APP_PID > /dev/null 2>&1; do
-    while true; 
+    while true; do
         current_minute=$(date '+%M' | sed 's/^0*//')
         
         if (( current_minute % 10 == 0 )); then
