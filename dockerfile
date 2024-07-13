@@ -46,9 +46,9 @@ ARG DEBIAN_FRONTEND=noninteractive \
 ENV \
     # Container Varaibles
     APP_NAME="conan" \
-    APP_FILES="$APP_FILES" \
+    APP_FILES="/app" \
     APP_EXE="ConanSandboxServer.exe" \
-    WORLD_FILES="$WORLD_FILES" \
+    WORLD_FILES="/world" \
     STEAMCMD_PATH="/usr/lib/games/steam/steamcmd" \
     SCRIPTS="/usr/local/bin" \
     LOGS="/var/log" \
