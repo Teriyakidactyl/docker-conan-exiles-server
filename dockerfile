@@ -86,7 +86,7 @@ RUN set -eux; \
     DIRECTORIES="$WORLD_FILES $APP_FILES $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $APP_LOGS $SCRIPTS" ;\
     \
     # Create and set up $DIRECTORIES permissions
-    useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
+    useradd -m -u $PUID -g $GUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
@@ -102,8 +102,7 @@ USER $APP_NAME
 
 # Copy scripts after changing to APP_NAME(user)
 COPY --chown=$APP_NAME:$APP_NAME scripts $SCRIPTS
-COPY \
-    --from=steamcmd \
+COPY --from=steamcmd \
     --chown=$APP_NAME:$APP_NAME \
     # Copy user profile (8mb)
     /root/Steam $STEAMCMD_PROFILE \
@@ -114,8 +113,18 @@ COPY \
 VOLUME ["$APP_FILES"]
 VOLUME ["$WORLD_FILES"]
 
-# Expose necessary ports
-EXPOSE 7777/udp 7777/tcp 7778/udp 27015/udp 25575/tcp
+# Expose necessary ports: (https://www.conanexiles.com/dedicated-servers/)
+EXPOSE \
+    # Game port (UDP): Default 7777, configurable in Engine.ini or via command line
+    7777/udp \
+    # Pinger port (UDP): Always game port + 1 (7778), not configurable
+    7778/udp \
+    # Server query port (UDP): Default 27015, configurable in Engine.ini or via command line
+    27015/udp \
+    # Mod download port (TCP): Default game port + offset (7777), configurable in Engine.ini
+    7777/tcp \
+    # RCON port (TCP): Default 25575, configurable in Game.ini or via command line
+    25575/tcp
 
 HEALTHCHECK --interval=1m --timeout=3s CMD pidof $APP_EXE || exit 1
 

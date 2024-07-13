@@ -16,8 +16,8 @@ main() {
 
     check_env
     log_clean
-    server_update
     links
+    server_update
     server_start
     log_tails
 
@@ -54,13 +54,16 @@ links (){
 
     mkdir -p $WORLD_DIRECTORIES
 
-    # Link 'WORLD_FILES' folders from  'APP_FILES'
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Engine/Config" $APP_FILES/Engine
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" $APP_FILES/ConanSandbox
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Config" $APP_FILES/ConanSandbox
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" $APP_FILES/ConanSandbox
-    # Link LOGS from WORLD_FILES
-    ls -sf "$APP_LOGS" $WORLD_FILES/$SERVER_NAME/Saved/Logs
+    # Link 'WORLD_FILES' folders TO 'APP_FILES'
+    # ln [SOURCE] [DESTINATION]
+    ln -sf "$APP_FILES/Engine" "$WORLD_FILES/$SERVER_NAME/Engine/Config"
+    ln -sf "$APP_FILES/ConanSandbox/Saved" "$WORLD_FILES/$SERVER_NAME/Saved"
+    ln -sf "$APP_FILES/ConanSandbox/Config" "$WORLD_FILES/$SERVER_NAME/Config"
+    ln -sf "$APP_FILES/ConanSandbox/Mods" "$WORLD_FILES/$SERVER_NAME/Mods"
+
+    # Link LOGS TO WORLD_FILES
+    ln -sf "$APP_FILES/ConanSandbox/Saved/Logs" "$APP_LOGS"
+
 
 }
 
