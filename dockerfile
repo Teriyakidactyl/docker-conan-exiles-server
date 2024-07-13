@@ -1,5 +1,5 @@
 # Stage 1: SteamCMD Install
-FROM --platform=linux/amd64 debian:sid-slim AS steamcmd
+FROM --platform=linux/amd64 debian:trixie-slim AS steamcmd
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -12,7 +12,7 @@ RUN apt-get update \
     && $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit
 
 # Stage 2: Final
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
@@ -25,8 +25,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
     PACKAGES_WINE=" \
         # Fake video for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
-        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine
-        # https://wiki.winehq.org/Debian , https://www.winehq.org/news/
+        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
         # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
         wine" \
         \
@@ -36,6 +35,10 @@ ARG DEBIAN_FRONTEND=noninteractive \
     PACKAGES_BASE=" \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
         ca-certificates \
+        # disk space analyzer: https://packages.debian.org/trixie/ncdu
+        ncdu \
+        # top replacement: https://packages.debian.org/trixie/btop
+        btop \
         # timezones, https://packages.debian.org/bookworm/tzdata
         tzdata"
     
