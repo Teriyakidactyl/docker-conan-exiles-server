@@ -32,7 +32,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         # Windows Emulator, https://packages.debian.org/bookworm/wine
         wine \
         wine64 \
-        wine32:i386 \
+        # wine32:i386 \
         # Unsure why here, https://packages.debian.org/bookworm/gnutls-bin
         gnutls-bin" \
         \
@@ -74,7 +74,7 @@ ENV \
 RUN set -eux; \
     \
     # Update and install common BASE_DEPENDENCIES
-    dpkg --add-architecture i386; \
+    # dpkg --add-architecture i386; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_CONAN; \
@@ -117,8 +117,8 @@ RUN set -eux; \
         \
         # Update and install Box86/Box64
         apt-get update; \
-        # Conflict due to wine32 require removal (reinstalled by Box86)
-        apt-get remove -y libstdc++6:i386; \
+        # Conflict due to wine32:i386 requires removal (reinstalled by Box86)
+        # apt-get remove -y libstdc++6:i386; \
         apt-get install -y --no-install-recommends \
             box86; \ 
         \
