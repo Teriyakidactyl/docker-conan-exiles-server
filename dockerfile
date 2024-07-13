@@ -26,7 +26,6 @@ ARG DEBIAN_FRONTEND=noninteractive \
         \
     PACKAGES_CONAN=" \
         xvfb \
-        xvfb-run \
         wine \
         gnutls-bin" \
         \
