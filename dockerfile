@@ -82,11 +82,10 @@ RUN set -eux; \
     STEAMCMD_LOGS="$STEAMCMD_PROFILE/logs" ;\
     APP_LOGS="$LOGS/$APP_NAME" ;\
     PUID=1000 \
-    GUID=1000 \
     DIRECTORIES="$WORLD_FILES $APP_FILES $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $APP_LOGS $SCRIPTS" ;\
     \
     # Create and set up $DIRECTORIES permissions
-    useradd -m -u $PUID -g $GUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
+    useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
