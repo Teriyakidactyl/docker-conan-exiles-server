@@ -17,7 +17,11 @@ FROM debian:trixie-slim
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
     WINEARCH=win64 \
+    # https://wiki.winehq.org/Mono
     WINE_MONO_VERSION=4.9.4 \
+    # https://wiki.winehq.org/Debug_Channels
+    WINEDEBUG=fixme-all \
+    DISPLAY=:0 \
     PACKAGES_ARM_STEAMCMD=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
@@ -35,12 +39,14 @@ ARG DEBIAN_FRONTEND=noninteractive \
     PACKAGES_BASE=" \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
         ca-certificates \
+        # timezones, https://packages.debian.org/bookworm/tzdata
+        tzdata" \
+        \
+    PACKAGES_DEV=" \
         # disk space analyzer: https://packages.debian.org/trixie/ncdu
         ncdu \
         # top replacement: https://packages.debian.org/trixie/btop
-        btop \
-        # timezones, https://packages.debian.org/bookworm/tzdata
-        tzdata"
+        btop"
     
 ENV \
     # Container Varaibles
@@ -70,7 +76,7 @@ RUN set -eux; \
     dpkg --add-architecture i386; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD; \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV; \
     apt-get install -y \
         $PACKAGES_WINE; \
     \
