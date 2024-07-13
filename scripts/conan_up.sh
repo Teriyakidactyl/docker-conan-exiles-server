@@ -16,7 +16,6 @@ main() {
 
     check_env
     log_clean
-    links
     server_update
     server_start
     log_tails
@@ -37,38 +36,6 @@ main() {
 
     log "ERROR - $APP_EXE @PID $APP_PID appears to have died! $(uptime)"
     down "(main loop exit)"
-}
-
-links (){
-
-    # Create symbolic links based on the SERVER_NAME environment variable
-
-    WORLD_DIRECTORIES=" \
-        $WORLD_FILES/$SERVER_NAME/Saved/Logs \
-        $WORLD_FILES/$SERVER_NAME/Config \
-        $WORLD_FILES/$SERVER_NAME/Mods \
-        $WORLD_FILES/$SERVER_NAME/Engine/Config \
-        $APP_FILES/Engine \
-        $APP_FILES/ConanSandbox" \
-
-    mkdir -p $WORLD_DIRECTORIES
-
-    # Link 'WORLD_FILES' folders from 'APP_FILES'
-    # ln [LINK] [DATA]
-
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Engine/Config" "$APP_FILES/Engine"
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" "$APP_FILES/ConanSandbox"
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Config" "$APP_FILES/ConanSandbox"
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" "$APP_FILES/ConanSandbox"
-
-    # TODO throw error if /ConanSandbox/Saved exists
-
-
-    # Link LOGS TO WORLD_FILES
-    touch $WORLD_FILES/$SERVER_NAME/Saved/Logs/ConanSandbox.log
-    ln -sf "$APP_FILES/ConanSandbox/Saved/Logs/ConanSandbox.log" "$APP_LOGS/ConanSandbox.log"
-
-
 }
 
 check_env() {

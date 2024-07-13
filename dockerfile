@@ -82,12 +82,36 @@ RUN set -eux; \
     STEAMCMD_LOGS="$STEAMCMD_PROFILE/logs" ;\
     APP_LOGS="$LOGS/$APP_NAME" ;\
     PUID=1000 \
-    DIRECTORIES="$WORLD_FILES $APP_FILES $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $APP_LOGS $SCRIPTS" ;\
+    \
+    WORLD_DIRECTORIES=" \
+        $WORLD_FILES/Saved/Logs \
+        $WORLD_FILES/Config \
+        $WORLD_FILES/Mods \
+        $WORLD_FILES/Engine/Config \
+        $APP_FILES/Engine \
+        $APP_FILES/ConanSandbox" ;\
+    \
+    DIRECTORIES=" \
+        $WORLD_FILES \
+        WORLD_DIRECTORIES \
+        $APP_FILES \
+        $LOGS \
+        $STEAMCMD_PATH \
+        $STEAMCMD_LOGS \
+        $APP_LOGS \
+        $SCRIPTS" ;\
     \
     # Create and set up $DIRECTORIES permissions
     useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
+    ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine" ;\
+    ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" ;\
+    ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" ;\
+    ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox";\
+    touch "$WORLD_FILES/Saved/Logs/ConanSandbox.log" ;\
+    ln -sf "$WORLD_FILES/Saved/Logs/ConanSandbox.log" "$APP_LOGS/ConanSandbox.log" ;\
+    \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
     \
