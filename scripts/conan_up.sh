@@ -22,6 +22,7 @@ main() {
 
     # Infinite loop while APP_PID is running
     while kill -0 $APP_PID > /dev/null 2>&1; do
+    while true; 
         current_minute=$(date '+%M' | sed 's/^0*//')
         
         if (( current_minute % 10 == 0 )); then
