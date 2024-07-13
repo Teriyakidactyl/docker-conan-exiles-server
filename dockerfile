@@ -93,7 +93,7 @@ RUN set -eux; \
     \
     DIRECTORIES=" \
         $WORLD_FILES \
-        WORLD_DIRECTORIES \
+        $WORLD_DIRECTORIES \
         $APP_FILES \
         $LOGS \
         $STEAMCMD_PATH \
