@@ -116,7 +116,7 @@ COPY \
     --chown=$APP_NAME:$APP_NAME \
     # Copy user profile (8mb)
     /root/Steam $STEAMCMD_PROFILE \
-    # Copy executables (300mb)
+    # Copy executables (714mb)
     $STEAMCMD_PATH $STEAMCMD_PATH 
 
 # https://docs.docker.com/reference/dockerfile/#volume
