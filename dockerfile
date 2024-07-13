@@ -16,12 +16,6 @@ FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
-    WINEARCH=win64 \
-    # https://wiki.winehq.org/Mono
-    WINE_MONO_VERSION=4.9.4 \
-    # https://wiki.winehq.org/Debug_Channels
-    WINEDEBUG=fixme-all \
-    DISPLAY=:0 \
     PACKAGES_ARM_STEAMCMD=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
@@ -64,6 +58,15 @@ ENV \
     SERVER_PLAYER_PASS="MySecretPassword" \
     SERVER_NAME="MyValheimServer" \
     WORLD_NAME="Teriyakolypse" \
+    \
+    # Wine Variable
+    WINEARCH=win64 \
+    # https://wiki.winehq.org/Mono
+    WINE_MONO_VERSION=4.9.4 \
+    # https://wiki.winehq.org/Debug_Channels
+    WINEDEBUG=fixme-all \
+    # xvfb
+    DISPLAY=:0 \
     \
     # Log settings 
     # TODO move to file, get more comprehensive.   

@@ -22,7 +22,7 @@ server_update () {
     log "SteamCMD begining download of $APP_NAME"
 
     wine $STEAMCMD_PATH/steamcmd.sh \
-    +@sSteamCmdForcePlatformType linux \
+    +@sSteamCmdForcePlatformType windows \
     +force_install_dir $APP_FILES \
     +login anonymous \
     +app_update $STEAM_CONAN_SERVER_APPID \
