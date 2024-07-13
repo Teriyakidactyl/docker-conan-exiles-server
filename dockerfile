@@ -22,7 +22,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
         # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
         wine \
-        # Fix for 'ntlm_auth was not found'
+        ## Fix for 'ntlm_auth was not found'
         winbind" \
         \
     PACKAGES_BASE_BUILD=" \

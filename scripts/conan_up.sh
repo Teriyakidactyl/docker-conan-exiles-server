@@ -30,10 +30,6 @@ main() {
             log "$(uptime)"
         fi
 
-        # TODO user count
-
-        # TODO server update?
-
         # Sleep for 1 minute before checking again
         sleep 60
     done

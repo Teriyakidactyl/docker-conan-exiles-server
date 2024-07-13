@@ -16,14 +16,20 @@ server_update () {
 
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
         log "$STEAMCMD_PATH directory not complete, presuming first run."
-        wine $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
+        xvfb-run \
+        --auto-servernum \
+        --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
+        $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
     fi
 
     # Update server 
     # Refference: https://developer.valvesoftware.com/wiki/SteamCMD
     log "SteamCMD begining download of $APP_NAME"
 
-    wine $STEAMCMD_PATH/steamcmd.sh \
+    xvfb-run \
+    --auto-servernum \
+    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
+    $STEAMCMD_PATH/steamcmd.sh \
     +@sSteamCmdForcePlatformType windows \
     +force_install_dir $APP_FILES \
     +login anonymous \
@@ -125,10 +131,13 @@ server_start() {
     log "Starting Conan-Exiles via WINE"
     xvfb-run \
     --auto-servernum \
-    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine $APP_FILES/$APP_EXE \
+    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
+    # Server Load
+    $APP_FILES/$APP_EXE \
     -nosteamclient \
     -game \
-    -server >> $APP_LOGS/$APP_EXE.log 2>&1 &
+    -server \
+    -log >> $APP_LOGS/$APP_EXE.log 2>&1 &
   
     # Track pids
     sleep 1
