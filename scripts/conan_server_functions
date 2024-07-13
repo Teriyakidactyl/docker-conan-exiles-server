@@ -1,7 +1,10 @@
 # TODO UDP process monitor https://github.com/lloesche/valheim-server-docker/blob/0996dc3a1fc1f5f88bcbd4056a28254adadb884e/common#L148
 
+# For Server Download
 STEAM_CONAN_SERVER_APPID="443030"
+# For Mod Downloads
 STEAM_CONAN_CLIENT_APPID="440900"
+
 WINEPREFIX="/home/$APP_NAME/.wine"
 
 server_update () {
@@ -9,7 +12,7 @@ server_update () {
     log "Starting steamcmd update"
 
     # steamcmd.sh ENVs
-    export LD_LIBRARY_PATH="$STEAMCMD_PATH/linux32"
+    # export LD_LIBRARY_PATH="$STEAMCMD_PATH/linux32"
 
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
         log "$STEAMCMD_PATH directory not complete, presuming first run."
@@ -18,7 +21,6 @@ server_update () {
 
     # Update server 
     # Refference: https://developer.valvesoftware.com/wiki/SteamCMD
-    # TODO Check server version before updating
     log "SteamCMD begining download of $APP_NAME"
 
     wine $STEAMCMD_PATH/steamcmd.sh \
@@ -87,7 +89,7 @@ server_start() {
         -nosteamclient \
         -game \
         -server \
-        -log >> $APP_LOGS/$APP_EXE.log 2>&1 &
+        -log >> $APP_LOGS/$APP_EXE.log 2>&1
 
         # Sleep for 5 seconds
         sleep 15
@@ -100,8 +102,8 @@ server_start() {
     fi
 
     # $APP_EXE ENV's
-    export LD_LIBRARY_PATH=$APP_FILES/linux64
-    export SteamAppId=892970
+    # export LD_LIBRARY_PATH=$APP_FILES/linux64
+    # export SteamAppId=892970
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
 

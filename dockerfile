@@ -21,7 +21,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         libc6:armhf" \
         \
     PACKAGES_WINE=" \
-        # Fake video for Wine https://packages.debian.org/bookworm/xvfb
+        # Fake x-11 video for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
         # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
         # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
@@ -59,11 +59,9 @@ ENV \
     SERVER_NAME="MyValheimServer" \
     WORLD_NAME="Teriyakolypse" \
     \
-    # Wine Variable
+    # Wine Variable, https://wiki.winehq.org/Mono, https://wiki.winehq.org/Debug_Channels
     WINEARCH=win64 \
-    # https://wiki.winehq.org/Mono
     WINE_MONO_VERSION=4.9.4 \
-    # https://wiki.winehq.org/Debug_Channels
     WINEDEBUG=fixme-all \
     # xvfb
     DISPLAY=:0 \
