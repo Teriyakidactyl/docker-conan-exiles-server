@@ -54,7 +54,7 @@ ENV \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
     SERVER_ADMIN_PASS="" \
-    SERVER_NAME="MyValheimServer" \
+    SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
     \
     # Wine Variable, https://wiki.winehq.org/Mono, https://wiki.winehq.org/Debug_Channels
@@ -96,6 +96,7 @@ RUN set -eux; \
     ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" $APP_FILES/ConanSandbox ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Config" $APP_FILES/ConanSandbox ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" $APP_FILES/ConanSandbox ;\
+    ls -sf "$LOGS/$APP_FILES/" $WORLD_FILES/$SERVER_NAME/Saved/Logs ;\
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
     \

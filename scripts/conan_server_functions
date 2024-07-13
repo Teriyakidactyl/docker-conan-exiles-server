@@ -11,11 +11,9 @@ server_update () {
 
     log "Starting steamcmd update"
 
-    # steamcmd.sh ENVs
-    # export LD_LIBRARY_PATH="$STEAMCMD_PATH/linux32"
-
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
         log "$STEAMCMD_PATH directory not complete, presuming first run."
+        # TODO: try with DISPLAY=:0  and no 'xvfb-run'
         xvfb-run \
         --auto-servernum \
         --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
@@ -26,6 +24,7 @@ server_update () {
     # Refference: https://developer.valvesoftware.com/wiki/SteamCMD
     log "SteamCMD begining download of $APP_NAME"
 
+     # TODO: try with DISPLAY=:0  and no 'xvfb-run'
     xvfb-run \
     --auto-servernum \
     --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
@@ -111,12 +110,12 @@ server_start() {
 
     log "Configuration files updated successfully"
 
+    # https://forums.funcom.com/t/conan-exiles-dedicated-server-launcher-official-version-1-7-8-beta-1-7-9/21699
+    # https://steamcommunity.com/sharedfiles/filedetails/?id=853969975
     log "Starting Conan-Exiles via WINE"
     xvfb-run \
     --auto-servernum \
-    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
-    # Server Load
-    $APP_FILES/$APP_EXE \
+    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine $APP_FILES/$APP_EXE \
     -nosteamclient \
     -game \
     -server \
