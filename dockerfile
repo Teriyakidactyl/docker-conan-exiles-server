@@ -74,7 +74,7 @@ ENV \
 RUN set -eux; \
     \
     # Update and install common BASE_DEPENDENCIES
-    dpkg --add-architecture i386 \
+    dpkg --add-architecture i386; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_CONAN; \
