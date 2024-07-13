@@ -89,28 +89,11 @@ server_start() {
     # Check first time wine run, this will force Wine config creation so that our server load won't fail on first run.
     if [ ! -d "$WINEPREFIX" ]; then
         log "First run detected, wait 15 seconds for wine config creation."
-
-        # xvfb-run \
-        # --auto-servernum \
-        # --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine64 $APP_FILES/$APP_EXE \
-        # -nosteamclient \
-        # -game \
-        # -server \
-        # -log >> $APP_LOGS/$APP_EXE.log 2>&1 &
-
-        # Sleep for 5 seconds
-        # sleep 15
-        
-        log "'Rebooting' Wine in 10 seconds"
         # https://wiki.winehq.org/Wineboot
         wineboot -esui &
         sleep 10
         wineserver -k
     fi
-
-    # $APP_EXE ENV's
-    # export LD_LIBRARY_PATH=$APP_FILES/linux64
-    # export SteamAppId=892970
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
 
