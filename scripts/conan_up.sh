@@ -51,10 +51,6 @@ check_env() {
     if [[ "$SERVER_NAME" == *"$SERVER_PLAYER_PASS"* ]]; then
         log "WARNING - Password '$SERVER_PLAYER_PASS' should not be part of the server name."
     fi
-
-    if [[ "$WORLD_NAME" == *".db"* || "$WORLD_NAME" == *".fwl"* ]]; then
-        log "WARNING - World name should not contain extensions like .db or .fwl."
-    fi
 }
 
 uptime() {

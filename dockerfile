@@ -16,16 +16,14 @@ FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
-    PACKAGES_ARM_STEAMCMD=" \
-        # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
-        libc6:armhf" \
-        \
     PACKAGES_WINE=" \
-        # Fake x-11 video for Wine https://packages.debian.org/bookworm/xvfb
+        # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
         # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
         # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
-        wine" \
+        wine \
+        # Fix for 'ntlm_auth was not found'
+        winbind" \
         \
     PACKAGES_BASE_BUILD=" \
         curl" \
@@ -54,10 +52,10 @@ ENV \
     TERM=xterm-256color \
     \
     # App Variables
-    SERVER_PUBLIC="0" \
     SERVER_PLAYER_PASS="MySecretPassword" \
+    SERVER_ADMIN_PASS="" \
     SERVER_NAME="MyValheimServer" \
-    WORLD_NAME="Teriyakolypse" \
+    SERVER_REGION_ID="1" \
     \
     # Wine Variable, https://wiki.winehq.org/Mono, https://wiki.winehq.org/Debug_Channels
     WINEARCH=win64 \
@@ -93,6 +91,7 @@ RUN set -eux; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
     # Create symbolic links based on the SERVER_NAME environment variable
+    # This allows seperating execution files from save files for volume access
     ln -sf "$WORLD_FILES/$SERVER_NAME/Engine/Config" $APP_FILES/Engine ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" $APP_FILES/ConanSandbox ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Config" $APP_FILES/ConanSandbox ;\
