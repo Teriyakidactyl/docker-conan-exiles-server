@@ -25,9 +25,14 @@ ARG DEBIAN_FRONTEND=noninteractive \
         lib32gcc-s1" \
         \
     PACKAGES_CONAN=" \
+        # Fake video for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
+        # Recommneded install for xvfb, https://packages.debian.org/bookworm/xauth
         xauth \
+        # Windows Emulator, https://packages.debian.org/bookworm/wine
         wine \
+        wine64 \
+        # Unsure why here, https://packages.debian.org/bookworm/gnutls-bin
         gnutls-bin" \
         \
     PACKAGES_ARM_BUILD=" \
