@@ -61,10 +61,8 @@ ENV \
     \
     # Wine Variable, https://wiki.winehq.org/Mono, https://wiki.winehq.org/Debug_Channels
     WINEARCH=win64 \
-    WINE_MONO_VERSION=4.9.4 \
+    #WINE_MONO_VERSION=4.9.4 \
     WINEDEBUG=fixme-all \
-    # xvfb
-    DISPLAY=:0 \
     \
     # Log settings 
     # TODO move to file, get more comprehensive.   
