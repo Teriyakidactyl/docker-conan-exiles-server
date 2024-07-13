@@ -44,25 +44,29 @@ links (){
     # Create symbolic links based on the SERVER_NAME environment variable
 
     WORLD_DIRECTORIES=" \
-        $WORLD_FILES/$SERVER_NAME/Saved \
         $WORLD_FILES/$SERVER_NAME/Saved/Logs \
         $WORLD_FILES/$SERVER_NAME/Config \
         $WORLD_FILES/$SERVER_NAME/Mods \
         $WORLD_FILES/$SERVER_NAME/Engine/Config \
         $APP_FILES/Engine \
-        $APP_FILES/ConanSandbox"
+        $APP_FILES/ConanSandbox" \
 
     mkdir -p $WORLD_DIRECTORIES
 
-    # Link 'WORLD_FILES' folders TO 'APP_FILES'
-    # ln [SOURCE] [DESTINATION]
-    ln -sf "$APP_FILES/Engine" "$WORLD_FILES/$SERVER_NAME/Engine/Config"
-    ln -sf "$APP_FILES/ConanSandbox/Saved" "$WORLD_FILES/$SERVER_NAME/Saved"
-    ln -sf "$APP_FILES/ConanSandbox/Config" "$WORLD_FILES/$SERVER_NAME/Config"
-    ln -sf "$APP_FILES/ConanSandbox/Mods" "$WORLD_FILES/$SERVER_NAME/Mods"
+    # Link 'WORLD_FILES' folders from 'APP_FILES'
+    # ln [LINK] [DATA]
+
+    ln -sf "$WORLD_FILES/$SERVER_NAME/Engine/Config" "$APP_FILES/Engine"
+    ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" "$APP_FILES/ConanSandbox"
+    ln -sf "$WORLD_FILES/$SERVER_NAME/Config" "$APP_FILES/ConanSandbox"
+    ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" "$APP_FILES/ConanSandbox"
+
+    # TODO throw error if /ConanSandbox/Saved exists
+
 
     # Link LOGS TO WORLD_FILES
-    ln -sf "$APP_FILES/ConanSandbox/Saved/Logs" "$APP_LOGS"
+    touch $WORLD_FILES/$SERVER_NAME/Saved/Logs/ConanSandbox.log
+    ln -sf "$APP_FILES/ConanSandbox/Saved/Logs/ConanSandbox.log" "$APP_LOGS/ConanSandbox.log"
 
 
 }
