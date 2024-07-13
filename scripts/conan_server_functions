@@ -1,0 +1,143 @@
+# TODO UDP process monitor https://github.com/lloesche/valheim-server-docker/blob/0996dc3a1fc1f5f88bcbd4056a28254adadb884e/common#L148
+
+STEAM_CONAN_SERVER_APPID="443030"
+STEAM_CONAN_CLIENT_APPID="440900"
+
+server_update () {
+
+    log "Starting steamcmd update"
+
+    # steamcmd.sh ENVs
+    export LD_LIBRARY_PATH="$STEAMCMD_PATH/linux32"
+
+    # only configure box64 if $ARCH contains arm
+    if echo "$ARCH" | grep -q "arm"; then
+        # https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md
+        export BOX86_LOG=1
+        export BOX86_TRACE_FILE=$LOGS/$APP_NAME'_box86.log'
+        export DEBUGGER=box86 
+    fi
+
+    if [ ! -d "/home/$APP_NAME/Steam" ]; then \
+        log "$STEAMCMD_PATH directory not complete, presuming first run."
+        $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
+    fi
+
+    # Update server 
+    # Refference: https://developer.valvesoftware.com/wiki/SteamCMD
+    # TODO Check server version before updating
+    log "SteamCMD begining download of $APP_NAME"
+
+    $STEAMCMD_PATH/steamcmd.sh \
+    +@sSteamCmdForcePlatformType linux \
+    +force_install_dir $APP_FILES \
+    +login anonymous \
+    +app_update $STEAM_CONAN_SERVER_APPID \
+    validate \
+    +quit | log_stdout
+
+}
+
+mod_updates() {
+
+    # Mod Updates
+    # Check if $SERVER_MOD_IDS exists, then use steamcmd to download mods to /world/$SERVER_NAME/Mods
+    if [ -n "$SERVER_MOD_IDS" ]; then
+        # Loop through the list of mod IDs and download each one
+        rm -rd /world/$SERVER_NAME/Mods/*
+        IFS=',' read -ra MOD_IDS <<<"$SERVER_MOD_IDS"
+        for MOD_ID in "${MOD_IDS[@]}"; do
+            echo "Downloading mod with ID: $MOD_ID"
+            steamcmd +force_install_dir $STEAM_PATH +login anonymous +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID +quit
+            # Find MOD_ID PAK files and create symbolic links to /world/$SERVER_NAME/Mods
+            find "$STEAM_PATH" -path "*$MOD_ID*.pak" -exec ln -sf {} /world/$SERVER_NAME/Mods \;                
+        done
+        # Create the modlist.txt file, https://nodecraft.com/support/games/conan-exiles/adding-mods-to-your-conan-exiles-server#h-create-modlisttxt-config-file-ae46981fe6
+        find "/world/$SERVER_NAME/Mods" -type l -name "*.pak" -exec basename {} \; | sed 's/^/*/' > "/world/$SERVER_NAME/Mods/modlist.txt"
+        echo "Mods enabled: "
+        cat /world/$SERVER_NAME/Mods/modlist.txt
+    else
+        rm -rd /world/$SERVER_NAME/Mods/*
+    fi
+
+}
+
+update_config_element() {
+    local element="$1"
+    local new_value="$2"
+
+    # Usage example:
+    # update_config_element "ServerName" "NewServerName" "/world"
+
+    # Find and update the element in .ini files
+    find "$WORLD_FILES" -type f -name "*.ini" -exec grep -q "$element" {} \; -exec sed -i "s/^$element=.*/$element=$new_value/" {} \; -exec awk -v element="$element" -v new_value="$new_value" 'BEGIN { FS = "=" } $1 == element { print FILENAME ":" NR ": " $0 }' {} \;
+}
+
+server_start() {
+
+    # Display server configuration
+    log "+----------------------------------+"
+    log "SERVER_NAME: $SERVER_NAME"
+    log "SERVER_PLAYER_PASS: $SERVER_PLAYER_PASS"
+    log "WORLD_NAME: $WORLD_NAME"
+    log "SERVER_PUBLIC: $SERVER_PUBLIC"
+    log "SERVER_ARGS: $SERVER_ARGS"
+    log "+----------------------------------+"
+    sleep 1
+
+    # Check first time wine run, this will force Wine config creation so that our server load won't fail on first run.
+    if [ ! -d "$WINEPREFIX" ]; then
+        log "First run detected, wait 15 seconds for wine config creation."
+        xvfb-run \
+        --auto-servernum \
+        --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine64 $APP_FILES/$APP_EXE \
+        -nosteamclient \
+        -game \
+        -server \
+        -log >> $APP_LOGS/$APP_EXE.log 2>&1 &
+
+        # Sleep for 5 seconds
+        sleep 15
+        
+        log "'Rebooting' Wine in 10 seconds"
+        # https://wiki.winehq.org/Wineboot
+        wineboot -esui &
+        sleep 10
+        wineserver -k
+    fi
+
+    # $APP_EXE ENV's
+    export LD_LIBRARY_PATH=$APP_FILES/linux64
+    export SteamAppId=892970
+
+    # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
+
+    # Update the ServerName configuration element
+    update_config_element "ServerName" "$SERVER_NAME"
+
+    # Update the ServerPlayerPassword configuration element
+    update_config_element "ServerPassword" "$SERVER_PLAYER_PASS"
+
+    # Update the AdminPassword configuration element
+    update_config_element "AdminPassword" "$SERVER_ADMIN_PASS"
+
+    # Update the serverRegion configuration element
+    update_config_element "serverRegion" "$SERVER_REGION_ID"
+
+    log "Configuration files updated successfully"
+
+    log "Starting Conan-Exiles via WINE"
+    xvfb-run \
+    --auto-servernum \
+    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine64 $APP_FILES/$APP_EXE \
+    -nosteamclient \
+    -game \
+    -server >> $APP_LOGS/$APP_EXE.log 2>&1 &
+  
+    # Track pids
+    sleep 1
+    export APP_PID=$!
+
+    log "Started $COMMAND with PID $APP_PID"
+}
+
