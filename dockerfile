@@ -1,5 +1,5 @@
 # Stage 1: SteamCMD Install
-FROM --platform=linux/amd64 debian:bookworm-slim AS steamcmd
+FROM --platform=linux/amd64 debian:sid-slim AS steamcmd
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -16,29 +16,18 @@ FROM debian:bookworm-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
+    WINEARCH=win64 \
+    WINE_MONO_VERSION=4.9.4 \
     PACKAGES_ARM_STEAMCMD=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
         \
-    PACKAGES_AMD64_STEAMCMD=" \
-        # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1-amd64-cross
-        lib32gcc-s1" \
-        \
-    PACKAGES_CONAN=" \
+    PACKAGES_WINE=" \
         # Fake video for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
-        # Recommneded install for xvfb, https://packages.debian.org/bookworm/xauth
-        xauth \
-        # Windows Emulator, https://packages.debian.org/bookworm/wine
-        wine \
-        wine64 \
-        # wine32:i386 \
-        # Unsure why here, https://packages.debian.org/bookworm/gnutls-bin
-        gnutls-bin" \
-        \
-    PACKAGES_ARM_BUILD=" \
-        # repo keyring add, https://packages.debian.org/bookworm/gnupg
-        gnupg" \
+        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine
+        # https://wiki.winehq.org/Debian , https://www.winehq.org/news/
+        wine" \
         \
     PACKAGES_BASE_BUILD=" \
         curl" \
@@ -74,10 +63,12 @@ ENV \
 RUN set -eux; \
     \
     # Update and install common BASE_DEPENDENCIES
-    # dpkg --add-architecture i386; \
+    dpkg --add-architecture i386; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_CONAN; \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD; \
+    apt-get install -y \
+        $PACKAGES_WINE; \
     \
     # Set local build variables
     STEAMCMD_PROFILE="/home/$APP_NAME/Steam" ;\
@@ -92,8 +83,6 @@ RUN set -eux; \
     useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
-    # Link Library for Wine
-    ln -s /usr/lib/x86_64-linux-gnu/libgcc_s.so.1 /usr/lib/wine/libgcc_s.so.1 \
     # Create symbolic links based on the SERVER_NAME environment variable
     ln -sf "$WORLD_FILES/$SERVER_NAME/Engine/Config" $APP_FILES/Engine ;\
     ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" $APP_FILES/ConanSandbox ;\
@@ -101,34 +90,6 @@ RUN set -eux; \
     ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" $APP_FILES/ConanSandbox ;\
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
-    # Architecture-specific setup for ARM
-    if echo "$TARGETARCH" | grep -q "arm"; then \
-        # Add ARM architecture and update
-        dpkg --add-architecture armhf; \
-        apt-get update; \
-        \
-        # Install ARM-specific packages
-        apt-get install -y --no-install-recommends \
-            $PACKAGES_ARM_STEAMCMD $PACKAGES_ARM_BUILD; \
-        \
-        # Add and configure Box86: https://box86.debian.ryanfortner.dev/
-        curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -o /etc/apt/sources.list.d/box86.list; \
-        curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg; \
-        \
-        # Update and install Box86/Box64
-        apt-get update; \
-        # Conflict due to wine32:i386 requires removal (reinstalled by Box86)
-        # apt-get remove -y libstdc++6:i386; \
-        apt-get install -y --no-install-recommends \
-            box86; \ 
-        \
-        # Clean up
-        apt-get autoremove --purge -y $PACKAGES_ARM_BUILD; \
-    else \ 
-        # AMD64 specific packages
-        apt-get install -y --no-install-recommends \
-            $PACKAGES_AMD64_STEAMCMD; \
-    fi; \
     \
     # Final cleanup
     apt-get clean; \

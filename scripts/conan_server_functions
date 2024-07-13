@@ -11,17 +11,9 @@ server_update () {
     # steamcmd.sh ENVs
     export LD_LIBRARY_PATH="$STEAMCMD_PATH/linux32"
 
-    # only configure box64 if $ARCH contains arm
-    if echo "$ARCH" | grep -q "arm"; then
-        # https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md
-        export BOX86_LOG=1
-        export BOX86_TRACE_FILE=$LOGS/$APP_NAME'_box86.log'
-        export DEBUGGER=box86 
-    fi
-
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
         log "$STEAMCMD_PATH directory not complete, presuming first run."
-        $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
+        wine $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
     fi
 
     # Update server 
@@ -29,7 +21,7 @@ server_update () {
     # TODO Check server version before updating
     log "SteamCMD begining download of $APP_NAME"
 
-    $STEAMCMD_PATH/steamcmd.sh \
+    wine $STEAMCMD_PATH/steamcmd.sh \
     +@sSteamCmdForcePlatformType linux \
     +force_install_dir $APP_FILES \
     +login anonymous \
@@ -91,7 +83,7 @@ server_start() {
         log "First run detected, wait 15 seconds for wine config creation."
         xvfb-run \
         --auto-servernum \
-        --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine $APP_FILES/$APP_EXE \
+        --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine64 $APP_FILES/$APP_EXE \
         -nosteamclient \
         -game \
         -server \
