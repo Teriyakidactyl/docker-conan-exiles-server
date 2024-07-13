@@ -20,10 +20,6 @@ ARG DEBIAN_FRONTEND=noninteractive \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
         \
-    PACKAGES_AMD64_STEAMCMD=" \
-        # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1-amd64-cross
-        lib32gcc-s1" \
-        \
     PACKAGES_CONAN=" \
         # Fake video for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
@@ -47,6 +43,8 @@ ARG DEBIAN_FRONTEND=noninteractive \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
         ca-certificates \
         # timezones, https://packages.debian.org/bookworm/tzdata
+        btop \
+        ncdu \
         tzdata"
     
 ENV \
@@ -101,34 +99,6 @@ RUN set -eux; \
     ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" $APP_FILES/ConanSandbox ;\
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
-    # Architecture-specific setup for ARM
-    if echo "$TARGETARCH" | grep -q "arm"; then \
-        # Add ARM architecture and update
-        dpkg --add-architecture armhf; \
-        apt-get update; \
-        \
-        # Install ARM-specific packages
-        apt-get install -y --no-install-recommends \
-            $PACKAGES_ARM_STEAMCMD $PACKAGES_ARM_BUILD; \
-        \
-        # Add and configure Box86: https://box86.debian.ryanfortner.dev/
-        curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -o /etc/apt/sources.list.d/box86.list; \
-        curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg; \
-        \
-        # Update and install Box86/Box64
-        apt-get update; \
-        # Conflict due to wine32:i386 requires removal (reinstalled by Box86)
-        # apt-get remove -y libstdc++6:i386; \
-        apt-get install -y --no-install-recommends \
-            box86; \ 
-        \
-        # Clean up
-        apt-get autoremove --purge -y $PACKAGES_ARM_BUILD; \
-    else \ 
-        # AMD64 specific packages
-        apt-get install -y --no-install-recommends \
-            $PACKAGES_AMD64_STEAMCMD; \
-    fi; \
     \
     # Final cleanup
     apt-get clean; \

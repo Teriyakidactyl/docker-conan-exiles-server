@@ -29,7 +29,7 @@ server_update () {
     # TODO Check server version before updating
     log "SteamCMD begining download of $APP_NAME"
 
-    $STEAMCMD_PATH/steamcmd.sh \
+    wine $STEAMCMD_PATH/steamcmd.sh \
     +@sSteamCmdForcePlatformType linux \
     +force_install_dir $APP_FILES \
     +login anonymous \
