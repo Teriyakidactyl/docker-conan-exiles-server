@@ -83,20 +83,12 @@ RUN set -eux; \
     APP_LOGS="$LOGS/$APP_NAME" ;\
     PUID=1000 \
     GUID=1000 \
-    WORLD_DIRECTORIES="$WORLD_FILES/$SERVER_NAME/Saved $WORLD_FILES/$SERVER_NAME/Config $WORLD_FILES/$SERVER_NAME/Mods $WORLD_FILES/$SERVER_NAME/Engine/Config $APP_FILES/Engine $APP_FILES/ConanSandbox" ;\
-    DIRECTORIES="$WORLD_FILES $APP_FILES $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $APP_LOGS $SCRIPTS $WORLD_DIRECTORIES" ;\
+    DIRECTORIES="$WORLD_FILES $APP_FILES $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $APP_LOGS $SCRIPTS" ;\
     \
     # Create and set up $DIRECTORIES permissions
     useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
-    # Create symbolic links based on the SERVER_NAME environment variable
-    # This allows seperating execution files from save files for volume access
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Engine/Config" $APP_FILES/Engine ;\
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Saved" $APP_FILES/ConanSandbox ;\
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Config" $APP_FILES/ConanSandbox ;\
-    ln -sf "$WORLD_FILES/$SERVER_NAME/Mods" $APP_FILES/ConanSandbox ;\
-    ls -sf "$APP_LOGS" $WORLD_FILES/$SERVER_NAME/Saved/Logs ;\
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
     \
