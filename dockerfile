@@ -31,6 +31,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         xauth \
         # Windows Emulator, https://packages.debian.org/bookworm/wine
         wine \
+        wine32 \
         wine64 \
         # Unsure why here, https://packages.debian.org/bookworm/gnutls-bin
         gnutls-bin" \
