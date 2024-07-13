@@ -117,6 +117,8 @@ RUN set -eux; \
         \
         # Update and install Box86/Box64
         apt-get update; \
+        # Conflict due to wine32 require removal (reinstalled by Box86)
+        apt-get remove -y libstdc++6:i386 \
         apt-get install -y --no-install-recommends \
             box86; \ 
         \

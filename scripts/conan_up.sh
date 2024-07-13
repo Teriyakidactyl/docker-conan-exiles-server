@@ -21,6 +21,7 @@ main() {
     log_tails
 
     # Infinite loop while APP_PID is running
+    # FIXME this loop is likely breaking due to xfvb > wine > conan redirects
     # while kill -0 $APP_PID > /dev/null 2>&1; do
     while true; 
         current_minute=$(date '+%M' | sed 's/^0*//')
