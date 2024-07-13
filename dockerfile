@@ -109,7 +109,7 @@ RUN set -eux; \
     ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" ;\
     ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" ;\
     ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox";\
-    touch "$WORLD_FILES/Saved/Logs/ConanSandbox.log" ;\
+    touch "$APP_LOGS/ConanSandbox.log" ;\
     ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log";\
     \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
