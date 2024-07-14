@@ -45,7 +45,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         btop"
     
 ENV \
-    # Primary Varaibles
+    # Primary Variables
     APP_NAME="conan" \
     APP_FILES="/app" \
     APP_EXE="ConanSandboxServer.exe" \
@@ -53,8 +53,8 @@ ENV \
     STEAMCMD_PATH="/usr/lib/games/steam/steamcmd" \
     SCRIPTS="/usr/local/bin" \
     LOGS="/var/log" \
-    TERM=xterm-256color \
-    PUID=1000 \
+    TERM="xterm-256color" \
+    PUID="1000" \
     \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
@@ -62,8 +62,8 @@ ENV \
     SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
     \
-    # Log settings 
-    # TODO move to file, get more comprehensive.   
+    # Log settings
+    # TODO move to file, get more comprehensive.  
     LOG_FILTER_SKIP=""
 
 ENV \
@@ -83,7 +83,7 @@ ENV \
         $APP_FILES/Engine \
         $APP_FILES/ConanSandbox" \
     \
-    # Concantened 'all' directories
+    # Concatenated 'all' directories
     DIRECTORIES=" \
         $WORLD_FILES \
         $WORLD_DIRECTORIES \
@@ -105,7 +105,7 @@ RUN set -eux; \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
     useradd -m -u $PUID -d "/home/$APP_NAME" -s /bin/bash $APP_NAME; \
-    mkdir -p $DIRECTORIES; \
+    mkdir -p "$DIRECTORIES"; \
     ln -s "/home/$APP_NAME/Steam/logs" "$LOGS/steamcmd"; \
     ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine" ;\
     ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" ;\
