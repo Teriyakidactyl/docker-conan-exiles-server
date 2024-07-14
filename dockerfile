@@ -22,9 +22,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         \
     PACKAGES_ARM_ONLY=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
-        libc6:armhf \
-        # required for Box64 + Wine?, https://packages.debian.org/trixie/wine64
-        wine64" \
+        libc6:armhf" \
         \
     PACKAGES_ARM_BUILD=" \
         # repo keyring add, https://packages.debian.org/bookworm/gnupg
@@ -136,9 +134,6 @@ RUN set -eux; \
         # Install ARM-specific packages
         apt-get install -y --no-install-recommends \
             $PACKAGES_ARM_ONLY $PACKAGES_ARM_BUILD; \
-        \
-        # Wine64 softlink in PATH
-        ln -sf /user/bin/wine64 /usr/lib/wine/wine64; \
         \
         # Add and configure Box86: https://box86.debian.ryanfortner.dev/
         curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -o /etc/apt/sources.list.d/box86.list; \
