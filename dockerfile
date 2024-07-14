@@ -16,11 +16,11 @@ FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
-    PACKAGES_AMD64_STEAMCMD=" \
+    PACKAGES_AMD64_ONLY=" \
         # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
         lib32gcc-s1" \
         \
-    PACKAGES_ARM_STEAMCMD=" \
+    PACKAGES_ARM_ONLY=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
         \
@@ -28,19 +28,17 @@ ARG DEBIAN_FRONTEND=noninteractive \
         # repo keyring add, https://packages.debian.org/bookworm/gnupg
         gnupg" \
         \
-    PACKAGES_WINE=" \
-        # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
-        xvfb \
-        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
-        # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
-        wine \
-        ## Fix for 'ntlm_auth was not found'
-        winbind" \
-        \
     PACKAGES_BASE_BUILD=" \
         curl" \
         \
     PACKAGES_BASE=" \
+        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
+        # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
+        wine \
+        ## Fix for 'ntlm_auth was not found'
+        winbind \
+        # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
+        xvfb \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
         ca-certificates \
         # timezones, https://packages.debian.org/bookworm/tzdata
@@ -108,7 +106,7 @@ RUN set -eux; \
     # Update and install common BASE_DEPENDENCIES
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE; \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV; \
     \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
@@ -133,7 +131,7 @@ RUN set -eux; \
         \
         # Install ARM-specific packages
         apt-get install -y --no-install-recommends \
-            $PACKAGES_ARM_STEAMCMD $PACKAGES_ARM_BUILD; \
+            $PACKAGES_ARM_ONLY $PACKAGES_ARM_BUILD; \
         \
         # Add and configure Box86: https://box86.debian.ryanfortner.dev/
         curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -o /etc/apt/sources.list.d/box86.list; \
@@ -153,7 +151,7 @@ RUN set -eux; \
     else \ 
         # AMD64 specific packages
         apt-get install -y --no-install-recommends \
-            $PACKAGES_AMD64_STEAMCMD; \
+            $PACKAGES_AMD64_ONLY; \
     fi; \
     # Final cleanup
     apt-get clean; \

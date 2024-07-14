@@ -27,6 +27,14 @@ server_update () {
 
     log "Starting steamcmd update"
 
+    # only configure box64 if $ARCH contains arm
+    if echo "$ARCH" | grep -q "arm"; then
+        # https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md
+        export BOX86_LOG=1
+        export BOX86_TRACE_FILE=$LOGS/$APP_NAME'_box86.log'
+        export DEBUGGER=box86 
+    fi
+
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
         log "$STEAMCMD_PATH directory not complete, presuming first run."
         $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
@@ -93,6 +101,24 @@ server_start() {
     log "+----------------------------------+"
     sleep 1
 
+    # Determine command based on architecture
+    if echo "$ARCH" | grep -q "arm"; then
+        # Box64 + Wine: https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+
+        # Box64 Config, Refference: https://github.com/ptitSeb/box64/blob/main/docs/USAGE.md ,errors: https://github.com/ptitSeb/box64/issues/1182
+        export BOX64_DYNAREC_BLEEDING_EDGE=0
+        export BOX64_DYNAREC_BIGBLOCK=0
+        export BOX64_DYNAREC_STRONGMEM=2
+        export BOX64_LOG=1
+        export BOX64_TRACE_FILE=$LOGS/$APP_NAME'_box64.log'
+        #export BOX64_NOPULSE=1
+
+        COMMAND="box64 $APP_FILES/$APP_EXE"
+        log "Running on $ARCH, starting emulation"
+
+    else
+        COMMAND="$APP_FILES/$APP_EXE"
+    fi
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
 
@@ -115,7 +141,7 @@ server_start() {
     log "Starting Conan-Exiles (@ $APP_FILES/$APP_EX) via WINE, WINEPREFIX=$WINEPREFIX, DISPLAY=$DISPLAY"
     xvfb-run \
     --auto-servernum \
-    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine $APP_FILES/$APP_EXE \
+    --server-args='-screen 0 640x480x24:32 -nolisten tcp' $COMMAND \
     -nosteamclient \
     -game \
     -server \
