@@ -85,7 +85,15 @@ ENV \
 
 ENV \
     # Concatenated 'all' directories
-    DIRECTORIES="$WORLD_FILES $WORLD_DIRECTORIES $APP_FILES $APP_LOGS $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $SCRIPTS"
+    DIRECTORIES=" \
+        $WORLD_FILES \
+        $WORLD_DIRECTORIES \
+        $APP_FILES \
+        $APP_LOGS \
+        $LOGS \
+        $STEAMCMD_PATH \
+        $STEAMCMD_LOGS \
+        $SCRIPTS"
 
 # Update package lists and install required packages
 RUN set -eux; \
@@ -100,12 +108,12 @@ RUN set -eux; \
     useradd -m -u $PUID -d "/home/$APP_NAME" -s /bin/bash $APP_NAME; \
     mkdir -p "$DIRECTORIES"; \
     ln -s "/home/$APP_NAME/Steam/logs" "$LOGS/steamcmd"; \
-    ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine" ;\
-    ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" ;\
-    ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" ;\
-    ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox";\
-    touch "$APP_LOGS/ConanSandbox.log" ;\
-    ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log";\
+    ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine"; \
+    ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox"; \
+    ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox"; \
+    ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox"; \
+    touch "$APP_LOGS/ConanSandbox.log"; \
+    ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log"; \
     \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
