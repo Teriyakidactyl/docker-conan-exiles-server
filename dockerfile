@@ -54,6 +54,7 @@ ENV \
     SCRIPTS="/usr/local/bin" \
     LOGS="/var/log" \
     TERM=xterm-256color \
+    PUID=1000 \
     \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
@@ -63,30 +64,26 @@ ENV \
     \
     # Log settings 
     # TODO move to file, get more comprehensive.   
-    LOG_FILTER_SKIP=""     
+    LOG_FILTER_SKIP=""
 
-# Update package lists and install required packages
-RUN set -eux; \
+ENV \
+    # Derivative Variables
     \
-    # Update and install common BASE_DEPENDENCIES
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE PACKAGES_AMD64_STEAMCMD; \
+    # Steamcmd
+    STEAMCMD_PROFILE="/home/$APP_NAME/Steam" \
+    STEAMCMD_LOGS="$STEAMCMD_PROFILE/logs" \
+    APP_LOGS="$LOGS/$APP_NAME" \
     \
-    # Set local build variables
-    STEAMCMD_PROFILE="/home/$APP_NAME/Steam" ;\
-    STEAMCMD_LOGS="$STEAMCMD_PROFILE/logs" ;\
-    APP_LOGS="$LOGS/$APP_NAME" ;\
-    PUID=1000 \
-    \
+    # Volume Prep Directories
     WORLD_DIRECTORIES=" \
         $WORLD_FILES/Saved/Logs \
         $WORLD_FILES/Config \
         $WORLD_FILES/Mods \
         $WORLD_FILES/Engine/Config \
         $APP_FILES/Engine \
-        $APP_FILES/ConanSandbox" ;\
+        $APP_FILES/ConanSandbox" \
     \
+    # Concantened 'all' directories
     DIRECTORIES=" \
         $WORLD_FILES \
         $WORLD_DIRECTORIES \
@@ -95,7 +92,15 @@ RUN set -eux; \
         $STEAMCMD_PATH \
         $STEAMCMD_LOGS \
         $APP_LOGS \
-        $SCRIPTS" ;\
+        $SCRIPTS"
+
+# Update package lists and install required packages
+RUN set -eux; \
+    \
+    # Update and install common BASE_DEPENDENCIES
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE PACKAGES_AMD64_STEAMCMD; \
     \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
@@ -124,7 +129,7 @@ USER $APP_NAME
 COPY --chown=$APP_NAME:$APP_NAME scripts $SCRIPTS
 # Copy user profile (8mb)
 COPY --from=steamcmd --chown=$APP_NAME:$APP_NAME /root/Steam $STEAMCMD_PROFILE 
-# Copy executables (714mb)
+    # Copy executables (714mb)
 COPY --from=steamcmd --chown=$APP_NAME:$APP_NAME $STEAMCMD_PATH $STEAMCMD_PATH 
 
 # https://docs.docker.com/reference/dockerfile/#volume
