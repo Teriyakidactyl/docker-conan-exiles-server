@@ -5,40 +5,25 @@ STEAM_CONAN_SERVER_APPID="443030"
 # For Mod Downloads
 STEAM_CONAN_CLIENT_APPID="440900"
 
-WINE_
-
-
-# 32 Bit Wine Prefix
-WINEARCH=win32 WINEPREFIX=/home/$APP_NAME/.wine32
-
 wine_setup (){
 
-    # https://wiki.winehq.org/FAQ#Is_there_a_64_bit_Wine?
+    export WINEPREFIX="/home/$APP_NAME/.wine"
+    export WINEDEBUG=fixme-all 
+    export DISPLAY=:0
+
+    # https://wiki.winehq.org/FAQ#Is_there_a_64_bit_Wine , https://wiki.winehq.org/FAQ#How_do_I_create_a_32_bit_wineprefix_on_a_64_bit_system?
     # It requires the installation of 32 bit libraries in order to run 32 bit Windows applications
 
     # Wine Variable, https://wiki.winehq.org/Mono, https://wiki.winehq.org/Debug_Channels
-    #WINE_MONO_VERSION=4.9.4 \
-    export WINEDEBUG=fixme-all \
-    export WINE32="/home/$APP_NAME/.wine32"
-    export WINE64="/home/$APP_NAME/.wine64"
- 
-    #64 Bit Wine Prefix
-    WINEARCH=win64 WINEPREFIX="$WINE64" wineboot -iu
-
-    # https://wiki.winehq.org/FAQ#How_do_I_create_a_32_bit_wineprefix_on_a_64_bit_system?
-    WINEARCH=win32 WINEPREFIX="$WINE32" wineboot -iu
+    #WINE_MONO_VERSION=4.9.4
 
     # Check first time wine run, this will force Wine config creation so that our server load won't fail on first run.
     if [ ! -d "$WINEPREFIX" ]; then
         log "First run detected, wait 15 seconds for wine config creation."
         # https://wiki.winehq.org/Wineboot
-        wineboot -esui &
-        sleep 10
-        wineserver -k
+        wineboot -iu | log_stdout
     fi
-
 }
-
 
 server_update () {
 
@@ -46,11 +31,6 @@ server_update () {
 
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
         log "$STEAMCMD_PATH directory not complete, presuming first run."
-        # TODO: try with DISPLAY=:0  and no 'xvfb-run'
-        WINEPREFIX="$WINE32"
-        xvfb-run \
-        --auto-servernum \
-        --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
         $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit | log_stdout
     fi
 
@@ -58,11 +38,6 @@ server_update () {
     # Refference: https://developer.valvesoftware.com/wiki/SteamCMD
     log "SteamCMD begining download of $APP_NAME"
 
-     # TODO: try with DISPLAY=:0  and no 'xvfb-run'
-    WINEPREFIX="$WINE32"
-    xvfb-run \
-    --auto-servernum \
-    --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine \
     $STEAMCMD_PATH/steamcmd.sh \
     +@sSteamCmdForcePlatformType windows \
     +force_install_dir $APP_FILES \
@@ -140,7 +115,6 @@ server_start() {
     # https://forums.funcom.com/t/conan-exiles-dedicated-server-launcher-official-version-1-7-8-beta-1-7-9/21699
     # https://steamcommunity.com/sharedfiles/filedetails/?id=853969975
     log "Starting Conan-Exiles via WINE"
-    WINEPREFIX="$WINE64"
     xvfb-run \
     --auto-servernum \
     --server-args='-screen 0 640x480x24:32 -nolisten tcp' wine $APP_FILES/$APP_EXE \
