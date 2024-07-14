@@ -76,12 +76,23 @@ ENV \
     \
     # Volume Prep Directories
     WORLD_DIRECTORIES="\
-        $WORLD_FILES/Saved/Logs \
-        $WORLD_FILES/Config \
-        $WORLD_FILES/Mods \
-        $WORLD_FILES/Engine/Config \
-        $APP_FILES/Engine \
-        $APP_FILES/ConanSandbox"
+    $WORLD_FILES/Saved/Logs \
+    $WORLD_FILES/Config \
+    $WORLD_FILES/Mods \
+    $WORLD_FILES/Engine/Config \
+    $APP_FILES/Engine \
+    $APP_FILES/ConanSandbox"
+
+ENV \   
+    DIRECTORIES="\
+    $WORLD_FILES \
+    $WORLD_DIRECTORIES \
+    $APP_FILES \
+    $APP_LOGS \
+    $LOGS \
+    $STEAMCMD_PATH \
+    $STEAMCMD_LOGS \
+    $SCRIPTS"
 
         # Update package lists and install required packages
 RUN set -eux; \
@@ -94,15 +105,7 @@ RUN set -eux; \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
     useradd -m -u $PUID -d "/home/$APP_NAME" -s /bin/bash $APP_NAME; \
-    DIRECTORIES="\
-        $WORLD_FILES \
-        $WORLD_DIRECTORIES \
-        $APP_FILES \
-        $APP_LOGS \
-        $LOGS \
-        $STEAMCMD_PATH \
-        $STEAMCMD_LOGS \
-        $SCRIPTS"; \
+ 
     mkdir -p $DIRECTORIES; \
     ln -s "/home/$APP_NAME/Steam/logs" "$LOGS/steamcmd"; \
     ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine"; \
