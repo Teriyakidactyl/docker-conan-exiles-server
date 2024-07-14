@@ -104,6 +104,7 @@ server_start() {
     # Determine command based on architecture
     if echo "$ARCH" | grep -q "arm"; then
         # Box64 + Wine: https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+        export BOX64_NOBANNER=1
 
         # Box64 Config, Refference: https://github.com/ptitSeb/box64/blob/main/docs/USAGE.md ,errors: https://github.com/ptitSeb/box64/issues/1182
         export BOX64_DYNAREC_BLEEDING_EDGE=0
@@ -113,11 +114,11 @@ server_start() {
         export BOX64_TRACE_FILE=$LOGS/$APP_NAME'_box64.log'
         #export BOX64_NOPULSE=1
 
-        COMMAND="box64 $APP_FILES/$APP_EXE"
+        COMMAND="box64 wine $APP_FILES/$APP_EXE"
         log "Running on $ARCH, starting emulation"
 
     else
-        COMMAND="$APP_FILES/$APP_EXE"
+        COMMAND="wine $APP_FILES/$APP_EXE"
     fi
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
