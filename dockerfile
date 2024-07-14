@@ -70,7 +70,8 @@ ENV \
 RUN set -eux; \
     \
     # Update and install common BASE_DEPENDENCIES
-    dpkg --add-architecture i386; \
+    # FIXME this needs to be variable, may be causing ARM error
+    ## dpkg --add-architecture i386; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV; \
@@ -102,6 +103,7 @@ RUN set -eux; \
         $SCRIPTS" ;\
     \
     # Create and set up $DIRECTORIES permissions
+    # links to seperate save game files 'stateful' data from application.
     useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
     ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
@@ -149,7 +151,9 @@ EXPOSE \
     # RCON port (TCP): Default 25575, configurable in Game.ini or via command line
     25575/tcp
 
-HEALTHCHECK --interval=1m --timeout=3s CMD pidof $APP_EXE || exit 1
+
+# TODO Find PID
+#HEALTHCHECK --interval=1m --timeout=3s CMD pidof $APP_EXE || exit 1
 
 ENTRYPOINT ["/bin/bash", "-c"]
 CMD ["conan_up.sh"]
