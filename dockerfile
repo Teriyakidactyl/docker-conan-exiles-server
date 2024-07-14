@@ -22,7 +22,9 @@ ARG DEBIAN_FRONTEND=noninteractive \
         \
     PACKAGES_ARM_ONLY=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
-        libc6:armhf" \
+        libc6:armhf \
+        # required for Box64 + Wine?, https://packages.debian.org/trixie/wine64
+        wine64" \
         \
     PACKAGES_ARM_BUILD=" \
         # repo keyring add, https://packages.debian.org/bookworm/gnupg
@@ -38,6 +40,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         ## Fix for 'ntlm_auth was not found'
         winbind \
         # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
+        ## xauth needed with --no-install-recommends
         xvfb \
         xauth \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
