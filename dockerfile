@@ -85,15 +85,7 @@ ENV \
 
 ENV \
     # Concatenated 'all' directories
-    DIRECTORIES=" \
-        $WORLD_FILES \
-        $WORLD_DIRECTORIES \
-        $APP_FILES \
-        $LOGS \
-        $STEAMCMD_PATH \
-        $STEAMCMD_LOGS \
-        $APP_LOGS \
-        $SCRIPTS"
+    DIRECTORIES="$WORLD_FILES $WORLD_DIRECTORIES $APP_FILES $APP_LOGS $LOGS $STEAMCMD_PATH $STEAMCMD_LOGS $SCRIPTS"
 
 # Update package lists and install required packages
 RUN set -eux; \
