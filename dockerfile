@@ -39,6 +39,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         winbind \
         # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
+        xuath \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
         ca-certificates \
         # timezones, https://packages.debian.org/bookworm/tzdata
