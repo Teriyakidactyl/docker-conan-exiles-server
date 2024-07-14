@@ -5,6 +5,7 @@ source $SCRIPTS/conan_server_functions
 export APP_LOGS="$LOGS/$APP_NAME"
 export ARCH=$(dpkg --print-architecture)
 export CONTAINER_START_TIME=$(date -u +%s)
+export DISPLAY=:0
 
 # TODO log rotate
 

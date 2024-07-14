@@ -22,6 +22,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
         # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
         wine \
+        wine32:i386 \
         ## Fix for 'ntlm_auth was not found'
         winbind" \
         \
@@ -56,11 +57,6 @@ ENV \
     SERVER_ADMIN_PASS="" \
     SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
-    \
-    # Wine Variable, https://wiki.winehq.org/Mono, https://wiki.winehq.org/Debug_Channels
-    WINEARCH=win64 \
-    #WINE_MONO_VERSION=4.9.4 \
-    WINEDEBUG=fixme-all \
     \
     # Log settings 
     # TODO move to file, get more comprehensive.   
