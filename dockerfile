@@ -81,8 +81,9 @@ ENV \
         $WORLD_FILES/Mods \
         $WORLD_FILES/Engine/Config \
         $APP_FILES/Engine \
-        $APP_FILES/ConanSandbox" \
-    \
+        $APP_FILES/ConanSandbox"
+
+ENV \
     # Concatenated 'all' directories
     DIRECTORIES=" \
         $WORLD_FILES \
