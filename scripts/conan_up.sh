@@ -13,6 +13,7 @@ main() {
     trap 'down EXIT' EXIT
 
     check_env
+    wine_setup
     log_clean
     server_update
     server_start
