@@ -137,6 +137,9 @@ RUN set -eux; \
         apt-get install -y --no-install-recommends \
             $PACKAGES_ARM_ONLY $PACKAGES_ARM_BUILD; \
         \
+        # Wine64 softlink in PATH
+        ln -sf /user/bin/wine64 /usr/lib/wine/wine64; \
+        \
         # Add and configure Box86: https://box86.debian.ryanfortner.dev/
         curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -o /etc/apt/sources.list.d/box86.list; \
         curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg; \
