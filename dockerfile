@@ -95,9 +95,9 @@ RUN set -eux; \
     \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
-    useradd -m -u $PUID -d /home/$APP_NAME -s /bin/bash $APP_NAME; \
+    useradd -m -u $PUID -d "/home/$APP_NAME" -s /bin/bash $APP_NAME; \
     mkdir -p $DIRECTORIES; \
-    ln -s /home/$APP_NAME/Steam/logs $LOGS/steamcmd; \
+    ln -s "/home/$APP_NAME/Steam/logs" "$LOGS/steamcmd"; \
     ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine" ;\
     ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" ;\
     ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" ;\
