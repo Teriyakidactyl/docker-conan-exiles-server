@@ -17,8 +17,16 @@ FROM debian:trixie-slim
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
     PACKAGES_AMD64_STEAMCMD=" \
-        # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1-amd64-cross
+        # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
         lib32gcc-s1" \
+        \
+    PACKAGES_ARM_STEAMCMD=" \
+        # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
+        libc6:armhf" \
+        \
+    PACKAGES_ARM_BUILD=" \
+        # repo keyring add, https://packages.debian.org/bookworm/gnupg
+        gnupg" \
         \
     PACKAGES_WINE=" \
         # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
@@ -100,7 +108,7 @@ RUN set -eux; \
     # Update and install common BASE_DEPENDENCIES
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE $PACKAGES_AMD64_STEAMCMD; \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE; \
     \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
@@ -117,6 +125,36 @@ RUN set -eux; \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
     \
+    # Architecture-specific setup for ARM
+    if echo "$TARGETARCH" | grep -q "arm"; then \
+        # Add ARM architecture and update
+        dpkg --add-architecture armhf; \
+        apt-get update; \
+        \
+        # Install ARM-specific packages
+        apt-get install -y --no-install-recommends \
+            $PACKAGES_ARM_STEAMCMD $PACKAGES_ARM_BUILD; \
+        \
+        # Add and configure Box86: https://box86.debian.ryanfortner.dev/
+        curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/box86.list -o /etc/apt/sources.list.d/box86.list; \
+        curl -fsSL https://itai-nelken.github.io/weekly-box86-debs/debian/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box86-debs-archive-keyring.gpg; \
+        \
+        # Add and configure Box64: https://box64.debian.ryanfortner.dev/
+        curl -fsSL https://ryanfortner.github.io/box64-debs/box64.list -o /etc/apt/sources.list.d/box64.list; \
+        curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg; \
+        \
+        # Update and install Box86/Box64
+        apt-get update; \
+        apt-get install -y --no-install-recommends \
+            box64 box86; \ 
+        \
+        # Clean up
+        apt-get autoremove --purge -y $PACKAGES_ARM_BUILD; \
+    else \ 
+        # AMD64 specific packages
+        apt-get install -y --no-install-recommends \
+            $PACKAGES_AMD64_STEAMCMD; \
+    fi; \
     # Final cleanup
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*; \
