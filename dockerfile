@@ -16,6 +16,10 @@ FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
+    PACKAGES_AMD64_STEAMCMD=" \
+        # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1-amd64-cross
+        lib32gcc-s1" \
+        \
     PACKAGES_WINE=" \
         # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
         xvfb \
@@ -67,7 +71,7 @@ RUN set -eux; \
     # Update and install common BASE_DEPENDENCIES
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE; \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE PACKAGES_AMD64_STEAMCMD; \
     \
     # Set local build variables
     STEAMCMD_PROFILE="/home/$APP_NAME/Steam" ;\
@@ -118,12 +122,10 @@ USER $APP_NAME
 
 # Copy scripts after changing to APP_NAME(user)
 COPY --chown=$APP_NAME:$APP_NAME scripts $SCRIPTS
-COPY --from=steamcmd \
-    --chown=$APP_NAME:$APP_NAME \
-    # Copy user profile (8mb)
-    /root/Steam $STEAMCMD_PROFILE \
-    # Copy executables (714mb)
-    $STEAMCMD_PATH $STEAMCMD_PATH 
+# Copy user profile (8mb)
+COPY --from=steamcmd --chown=$APP_NAME:$APP_NAME /root/Steam $STEAMCMD_PROFILE 
+# Copy executables (714mb)
+COPY --from=steamcmd --chown=$APP_NAME:$APP_NAME $STEAMCMD_PATH $STEAMCMD_PATH 
 
 # https://docs.docker.com/reference/dockerfile/#volume
 VOLUME ["$APP_FILES"]
