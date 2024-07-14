@@ -45,7 +45,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         btop"
     
 ENV \
-    # Container Varaibles
+    # Primary Varaibles
     APP_NAME="conan" \
     APP_FILES="/app" \
     APP_EXE="ConanSandboxServer.exe" \
@@ -100,7 +100,7 @@ RUN set -eux; \
     # Update and install common BASE_DEPENDENCIES
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE PACKAGES_AMD64_STEAMCMD; \
+        $PACKAGES_BASE $PACKAGES_BASE_BUILD $PACKAGES_DEV $PACKAGES_WINE $PACKAGES_AMD64_STEAMCMD; \
     \
     # Create and set up $DIRECTORIES permissions
     # links to seperate save game files 'stateful' data from application.
