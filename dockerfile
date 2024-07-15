@@ -56,9 +56,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
     PACKAGES_AMD64_ONLY=" \
         # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
         lib32gcc-s1" \ 
-        # Maybe required for Wine64 'ntauth', https://packages.debian.org/trixie/winbind
-        # winbind \
-        \
+         \
     PACKAGES_ARM_ONLY=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
@@ -97,6 +95,7 @@ ENV \
     SCRIPTS="/usr/local/bin" \
     LOGS="/var/log" \
     TERM="xterm-256color" \
+    DISPLAY=":0" \
     PUID="1000" \
     \
     # App Variables
