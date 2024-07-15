@@ -75,7 +75,7 @@ ENV \
     SERVER_REGION_ID="1" \
     \
     # Manual amd64 wine for Box64, https://dl.winehq.org/wine-builds > https://dl.winehq.org/wine-builds/debian/dists/trixie/main/binary-amd64/
-    WINE_PATH="/usr/lib/wine" \
+    WINE_PATH="/opt/wine-stable/bin" \
     WINE_BRANCH="stable" \
     WINE_VERSION="9.0.0.0" \
     WINE_ID="debian" \
@@ -162,13 +162,13 @@ RUN set -eux; \
         curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg; \
         \
         # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+        ## Wine only translate windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
         WINE_DEB_TMP="/tmp/wine-installer"; \
         mkdir -p $WINE_DEB_TMP; \
         curl -sLO ${WINE_LNKA}${WINE_DEB_A1} -o $WINE_DEB_TMP/${WINE_DEB_A1}; \
         curl -sLO ${WINE_LNKA}${WINE_DEB_A2} -o $WINE_DEB_TMP/${WINE_DEB_A2}; \
-        dpkg-deb -x ${WINE_DEB_A1} $WINE_DEB_TMP; \
-        dpkg-deb -x ${WINE_DEB_A2} $WINE_DEB_TMP; \
-        mv $WINE_DEB_TMP/opt/wine* $WINE_PATH; \
+        dpkg-deb -x ${WINE_DEB_A1} /; \
+        dpkg-deb -x ${WINE_DEB_A2} /; \
         chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver; \
         rm -rf $WINE_DEB_TMP; \
         ln -s $WINE_PATH/wine /usr/local/bin/wine; \
