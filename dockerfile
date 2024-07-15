@@ -1,28 +1,59 @@
 # Stage 1: SteamCMD Install
-FROM --platform=linux/amd64 debian:trixie-slim AS steamcmd
+FROM --platform=linux/amd64 debian:trixie-slim AS opt
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-ENV STEAMCMD_PATH="/usr/lib/games/steam/steamcmd"
+ENV STEAMCMD_PATH="/opt/steamcmd"
 
-RUN apt-get update \
-    && apt-get install -y curl lib32gcc-s1 \
-    && mkdir -p $STEAMCMD_PATH \
-    && curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - -C $STEAMCMD_PATH \
-    && $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit
+# Manual amd64 wine for Box64, https://dl.winehq.org/wine-builds > https://dl.winehq.org/wine-builds/debian/dists/trixie/main/binary-amd64/
+## WINE_PATH from winehq debs
+ENV WINE_PATH="/opt/wine-stable/bin" \
+    WINE_BRANCH="stable" \
+    WINE_VERSION="9.0.0.0" \
+    WINE_ID="debian" \
+    WINE_DIST="trixie" \
+    WINE_TAG="-1" 
+
+# Set Wine download links for amd64
+ENV WINE_LNKA="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-amd64/" \
+    WINE_DEB_A1="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \ 
+    WINE_DEB_A2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
+    WINE_LNKB="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-i386/" \
+    WINE_DEB_B1="wine-${WINE_BRANCH}-i386_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb" \ 
+    WINE_DEB_B2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"
+
+RUN apt-get update; \
+    apt-get install -y curl lib32gcc-s1; \
+    mkdir -p $STEAMCMD_PATH; \
+    curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - -C $STEAMCMD_PATH; \
+    $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit; \
+    \
+    # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+    ## Wine only translates windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
+    ## Reffernecess to $WINE_PATH/wine are ommited due to not needing wine32 in this server build (using Box86 > steamcmd)
+    WINE_DEB_TMP="/tmp/wine-installer"; \
+    mkdir -p $WINE_DEB_TMP; \
+    curl -sLO ${WINE_LNKA}${WINE_DEB_A1}; \
+    curl -sLO ${WINE_LNKA}${WINE_DEB_A2}; \
+    curl -sLO ${WINE_LNKB}${WINE_DEB_B1}; \
+    curl -sLO ${WINE_LNKB}${WINE_DEB_B2}; \
+    dpkg-deb -x ${WINE_DEB_A1} /; \
+    dpkg-deb -x ${WINE_DEB_A2} /; \
+    dpkg-deb -x ${WINE_DEB_B1} /; \
+    dpkg-deb -x ${WINE_DEB_B2} /; \
+    chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
 
 # Stage 2: Final
 # Refference: https://conanexiles.fandom.com/wiki/Dedicated_Server_Setup:_Linux_and_Wine
-
 FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
     PACKAGES_AMD64_ONLY=" \
         # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
-        wine \
+        # wine \
         ## Fix for 'ntlm_auth was not found'
-        winbind \
+        # winbind \
         # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
         lib32gcc-s1" \
         \
@@ -62,7 +93,8 @@ ENV \
     APP_FILES="/app" \
     APP_EXE="ConanSandboxServer.exe" \
     WORLD_FILES="/world" \
-    STEAMCMD_PATH="/usr/lib/games/steam/steamcmd" \
+    STEAMCMD_PATH="/opt/steamcmd" \
+    WINE_PATH="/opt/wine-stable/bin" \
     SCRIPTS="/usr/local/bin" \
     LOGS="/var/log" \
     TERM="xterm-256color" \
@@ -73,15 +105,6 @@ ENV \
     SERVER_ADMIN_PASS="" \
     SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
-    \
-    # Manual amd64 wine for Box64, https://dl.winehq.org/wine-builds > https://dl.winehq.org/wine-builds/debian/dists/trixie/main/binary-amd64/
-    ## WINE_PATH from winehq debs
-    WINE_PATH="/opt/wine-stable/bin" \
-    WINE_BRANCH="stable" \
-    WINE_VERSION="9.0.0.0" \
-    WINE_ID="debian" \
-    WINE_DIST="trixie" \
-    WINE_TAG="-1" \
     \
     # Log settings
     # TODO move to file, get more comprehensive.  
@@ -102,13 +125,8 @@ ENV \
     $WORLD_FILES/Mods \
     $WORLD_FILES/Engine/Config \
     $APP_FILES/Engine \
-    $APP_FILES/ConanSandbox" \
-    \
-    # Set Wine download links for amd64
-    WINE_LNKA="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-amd64/" \
-    WINE_DEB_A1="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \ 
-    WINE_DEB_A2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb"
-	
+    $APP_FILES/ConanSandbox"
+    	
 ENV \   
     DIRECTORIES="\
     $WINE_PATH \
@@ -162,21 +180,6 @@ RUN set -eux; \
         curl -fsSL https://ryanfortner.github.io/box64-debs/box64.list -o /etc/apt/sources.list.d/box64.list; \
         curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg; \
         \
-        # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
-        ## Wine only translate windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
-        WINE_DEB_TMP="/tmp/wine-installer"; \
-        mkdir -p $WINE_DEB_TMP; \
-        curl -sLO ${WINE_LNKA}${WINE_DEB_A1} -o $WINE_DEB_TMP/${WINE_DEB_A1}; \
-        curl -sLO ${WINE_LNKA}${WINE_DEB_A2} -o $WINE_DEB_TMP/${WINE_DEB_A2}; \
-        dpkg-deb -x ${WINE_DEB_A1} /; \
-        dpkg-deb -x ${WINE_DEB_A2} /; \
-        chmod +x $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver; \
-        rm -rf $WINE_DEB_TMP; \
-        ln -s $WINE_PATH/wine64 /usr/local/bin/wine64; \
-        ln -s $WINE_PATH/wineboot /usr/local/bin/wineboot; \
-        ln -s $WINE_PATH/winecfg /usr/local/bin/winecfg; \
-        ln -s $WINE_PATH/wineserver /usr/local/bin/wineserver; \
-        \
         # Update and install Box86/Box64
         apt-get update; \
         apt-get install -y --no-install-recommends \
@@ -199,10 +202,10 @@ USER $APP_NAME
 
 # Copy scripts after changing to APP_NAME(user)
 COPY --chown=$APP_NAME:$APP_NAME scripts $SCRIPTS
-# Copy user profile (8mb)
-COPY --from=steamcmd --chown=$APP_NAME:$APP_NAME /root/Steam $STEAMCMD_PROFILE 
-    # Copy executables (714mb)
-COPY --from=steamcmd --chown=$APP_NAME:$APP_NAME $STEAMCMD_PATH $STEAMCMD_PATH 
+# Copy steamcmd user profile (8mb)
+COPY --from=opt --chown=$APP_NAME:$APP_NAME /root/Steam $STEAMCMD_PROFILE 
+# Copy executables (714mb)
+COPY --from=opt --chown=$APP_NAME:$APP_NAME /opt /opt
 
 # https://docs.docker.com/reference/dockerfile/#volume
 VOLUME ["$APP_FILES"]
