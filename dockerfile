@@ -35,8 +35,8 @@ RUN apt-get update; \
     curl -sLO ${WINE_LNKA}${WINE_DEB_A2}; \
     # curl -sLO ${WINE_LNKB}${WINE_DEB_B1}; \
     # curl -sLO ${WINE_LNKB}${WINE_DEB_B2}; \
-    dpkg-deb -x ${WINE_DEB_A1}; \
-    dpkg-deb -x ${WINE_DEB_A2}; \
+    dpkg-deb -x ${WINE_DEB_A1} /; \
+    dpkg-deb -x ${WINE_DEB_A2} /; \
     # dpkg-deb -x ${WINE_DEB_B1}; \
     # dpkg-deb -x ${WINE_DEB_B2}; \
     # chmod +x $WINE_PATH/wine
