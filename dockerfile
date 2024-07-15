@@ -15,12 +15,16 @@ ENV WINE_BRANCH="staging" \
     WINE_TAG="-1" 
 
 # Set Wine download links for amd64
-ENV WINE_LNKA="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-amd64/" \
-    WINE_DEB_A1="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \ 
-    WINE_DEB_A2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
-    WINE_LNKB="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-i386/" \
-    WINE_DEB_B1="wine-${WINE_BRANCH}-i386_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb" \ 
-    WINE_DEB_B2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"    
+ENV WINEHQ_LINK_AMD64="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-amd64/" \
+    # wine64 main bin
+    WINE_64_DEB_1="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
+    # (required for wine64 / can work alongside wine_i386 main bin) 
+    WINE_64_DEB_2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
+    WINEHQ_LINK_I386="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-i386/" \
+    # wine_i386 main bin
+    WINE_32_DEB_1="wine-${WINE_BRANCH}-i386_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"
+    # wine_i386 support files (required for wine_i386 if no wine64 / CONFLICTS WITH wine64 support files) 
+    #WINE_32_DEB_2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"    
 
 RUN apt-get update; \
     apt-get install -y curl lib32gcc-s1; \
@@ -30,20 +34,18 @@ RUN apt-get update; \
     \
     # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
     ## Wine only translates windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
-    ## Reffernecess to $WINE_PATH/wine are ommited due to not needing wine32 in this server build (using Box86 > steamcmd)
+    ## the 'B' tagged links are optional wine32, it's only about 300 MB bigger, so leaving in.
     TEMP_DIR="/tmp/wine_debs"; \
     mkdir -p "$TEMP_DIR"; \
-    # Download the .deb files using curl
-    curl -sL "${WINE_LNKA}${WINE_DEB_A1}" -o "${TEMP_DIR}/${WINE_DEB_A1}"; \
-    curl -sL "${WINE_LNKA}${WINE_DEB_A2}" -o "${TEMP_DIR}/${WINE_DEB_A2}"; \
-    # curl -sL "${WINE_LNKB}${WINE_DEB_B1}" -o "${TEMP_DIR}/${WINE_DEB_B1}"; \
-    # curl -sL "${WINE_LNKB}${WINE_DEB_B2}" -o "${TEMP_DIR}/${WINE_DEB_B2}";
-    dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_A1}" /; \
-    dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_A2}" /; \
-    # dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_B1}" /; \
-    # dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_B2}" /;
-    # chmod +x $WINE_PATH/wine
-    chmod +x $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
+    curl -sL "${WINEHQ_LINK_AMD64}${WINE_64_DEB_1}" -o "${TEMP_DIR}/${WINE_64_DEB_1}"; \
+    curl -sL "${WINEHQ_LINK_AMD64}${WINE_64_DEB_2}" -o "${TEMP_DIR}/${WINE_64_DEB_2}"; \
+    curl -sL "${WINEHQ_LINK_I386}${WINE_32_DEB_1}" -o "${TEMP_DIR}/${WINE_32_DEB_1}"; \
+    #curl -sL "${WINEHQ_LINK_I386}${WINE_32_DEB_2}" -o "${TEMP_DIR}/${WINE_32_DEB_2}"; \
+    dpkg-deb -x "${TEMP_DIR}/${WINE_64_DEB_1}" /; \
+    dpkg-deb -x "${TEMP_DIR}/${WINE_64_DEB_2}" /; \
+    dpkg-deb -x "${TEMP_DIR}/${WINE_32_DEB_1}" /; \
+    #dpkg-deb -x "${TEMP_DIR}/${WINE_32_DEB_2}" /; \
+    chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
 
 # Stage 2: Final
 # Refference: https://conanexiles.fandom.com/wiki/Dedicated_Server_Setup:_Linux_and_Wine
@@ -166,7 +168,7 @@ RUN set -eux; \
     ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log"; \
     \
     # Create symlinks for wine
-    # ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
+    ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
     ln -sf "$WINE_PATH/wine64" /usr/local/bin/wine64; \
     ln -sf "$WINE_PATH/wineboot" /usr/local/bin/wineboot; \
     ln -sf "$WINE_PATH/winecfg" /usr/local/bin/winecfg; \
