@@ -99,7 +99,7 @@ ENV \
     \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
-    SERVER_ADMIN_PASS="" \
+    SERVER_ADMIN_PASS="MySecretPasswordAdmin" \
     SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
     \
