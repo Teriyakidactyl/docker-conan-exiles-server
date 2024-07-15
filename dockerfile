@@ -110,6 +110,7 @@ ENV \
 	
 ENV \   
     DIRECTORIES="\
+    $WINE_PATH \
     $WORLD_FILES \
     $WORLD_DIRECTORIES \
     $APP_FILES \
@@ -160,7 +161,7 @@ RUN set -eux; \
         curl -fsSL https://ryanfortner.github.io/box64-debs/box64.list -o /etc/apt/sources.list.d/box64.list; \
         curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg; \
         \
-        # Install wine amd64 in arm manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+        # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
         WINE_DEB_TMP="/tmp/wine-installer"; \
         mkdir -p $WINE_DEB_TMP; \
         curl -sLO ${WINE_LNKA}${WINE_DEB_A1} -o $WINE_DEB_TMP/${WINE_DEB_A1}; \
