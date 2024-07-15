@@ -8,8 +8,8 @@ ENV STEAMCMD_PATH="/opt/steamcmd"
 # Manual amd64 wine for Box64, https://dl.winehq.org/wine-builds > https://dl.winehq.org/wine-builds/debian/dists/trixie/main/binary-amd64/
 ## WINE_PATH from winehq debs
 ENV WINE_PATH="/opt/wine-stable/bin" \
-    WINE_BRANCH="stable" \
-    WINE_VERSION="9.0.0.0" \
+    WINE_BRANCH="staging" \
+    WINE_VERSION="9.13" \
     WINE_ID="debian" \
     WINE_DIST="trixie" \
     WINE_TAG="-1" 
