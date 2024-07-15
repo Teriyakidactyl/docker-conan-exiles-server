@@ -126,7 +126,7 @@ server_start() {
         log "Running on $ARCH, starting emulation"
 
     else
-        COMMAND="wine $APP_FILES/$APP_EXE"
+        COMMAND="wine64 $APP_FILES/$APP_EXE"
     fi
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
