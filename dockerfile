@@ -17,14 +17,15 @@ ENV WINE_BRANCH="staging" \
 # Set Wine download links for amd64
 ENV WINEHQ_LINK_AMD64="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-amd64/" \
     # wine64 main bin
-    WINE_64_DEB_1="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
+    WINE_64_MAIN_BIN="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
     # (required for wine64 / can work alongside wine_i386 main bin) 
-    WINE_64_DEB_2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \
-    WINEHQ_LINK_I386="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-i386/" \
+    WINE_64_SUPPORT_BIN="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb"
+    # NOTE Skipping wine32 to see if it's needed
+    #WINEHQ_LINK_I386="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-i386/" \
     # wine_i386 main bin
-    WINE_32_DEB_1="wine-${WINE_BRANCH}-i386_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"
+    #WINE_32_MAIN_BIN="wine-${WINE_BRANCH}-i386_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"
     # wine_i386 support files (required for wine_i386 if no wine64 / CONFLICTS WITH wine64 support files) 
-    #WINE_32_DEB_2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"    
+    #W INE_32_SUPPORT_BIN="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_i386.deb"    
 
 RUN apt-get update; \
     apt-get install -y curl lib32gcc-s1; \
@@ -32,20 +33,22 @@ RUN apt-get update; \
     curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | tar zxvf - -C $STEAMCMD_PATH; \
     $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit; \
     \
+    # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
     # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
     ## Wine only translates windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
     ## the 'B' tagged links are optional wine32, it's only about 300 MB bigger, so leaving in.
     TEMP_DIR="/tmp/wine_debs"; \
     mkdir -p "$TEMP_DIR"; \
-    curl -sL "${WINEHQ_LINK_AMD64}${WINE_64_DEB_1}" -o "${TEMP_DIR}/${WINE_64_DEB_1}"; \
-    curl -sL "${WINEHQ_LINK_AMD64}${WINE_64_DEB_2}" -o "${TEMP_DIR}/${WINE_64_DEB_2}"; \
-    curl -sL "${WINEHQ_LINK_I386}${WINE_32_DEB_1}" -o "${TEMP_DIR}/${WINE_32_DEB_1}"; \
-    #curl -sL "${WINEHQ_LINK_I386}${WINE_32_DEB_2}" -o "${TEMP_DIR}/${WINE_32_DEB_2}"; \
-    dpkg-deb -x "${TEMP_DIR}/${WINE_64_DEB_1}" /; \
-    dpkg-deb -x "${TEMP_DIR}/${WINE_64_DEB_2}" /; \
-    dpkg-deb -x "${TEMP_DIR}/${WINE_32_DEB_1}" /; \
-    #dpkg-deb -x "${TEMP_DIR}/${WINE_32_DEB_2}" /; \
-    chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
+    curl -sL "${WINEHQ_LINK_AMD64}${WINE_64_MAIN_BIN}" -o "${TEMP_DIR}/${WINE_64_MAIN_BIN}"; \
+    curl -sL "${WINEHQ_LINK_AMD64}${WINE_64_SUPPORT_BIN}" -o "${TEMP_DIR}/${WINE_64_SUPPORT_BIN}"; \
+    curl -sL "${WINEHQ_LINK_I386}${WINE_32_MAIN_BIN}" -o "${TEMP_DIR}/${WINE_32_MAIN_BIN}"; \
+    #curl -sL "${WINEHQ_LINK_I386}${WINE_32_SUPPORT_BIN}" -o "${TEMP_DIR}/${WINE_32_SUPPORT_BIN}"; \
+    dpkg-deb -x "${TEMP_DIR}/${WINE_64_MAIN_BIN}" /; \
+    dpkg-deb -x "${TEMP_DIR}/${WINE_64_SUPPORT_BIN}" /; \
+    #dpkg-deb -x "${TEMP_DIR}/${WINE_32_MAIN_BIN}" /; \
+    #dpkg-deb -x "${TEMP_DIR}/${WINE_32_SUPPORT_BIN}" /; \
+    chmod +x $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
+    ## $WINE_PATH/wine
 
 # Stage 2: Final
 # Refference: https://conanexiles.fandom.com/wiki/Dedicated_Server_Setup:_Linux_and_Wine
@@ -54,17 +57,10 @@ FROM debian:trixie-slim
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
     PACKAGES_AMD64_ONLY=" \
-        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
-        # wine \
-        ## Fix for 'ntlm_auth was not found'
-        # winbind \
         # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
         lib32gcc-s1" \
         \
     PACKAGES_ARM_ONLY=" \
-        # Auto Bin, https://packages.debian.org/trixie/binfmt-support
-        ## https://packages.debian.org/trixie/binfmt-support \
-        # binfmt-support \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
         \
@@ -77,7 +73,7 @@ ARG DEBIAN_FRONTEND=noninteractive \
         \
     PACKAGES_BASE=" \
         # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
-        ## xauth needed with --no-install-recommends
+        ## xauth needed with --no-install-recommends with wine
         xvfb \
         xauth \
         # curl, steamcmd, https://packages.debian.org/bookworm/ca-certificates
@@ -168,7 +164,7 @@ RUN set -eux; \
     ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log"; \
     \
     # Create symlinks for wine
-    ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
+    # ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
     ln -sf "$WINE_PATH/wine64" /usr/local/bin/wine64; \
     ln -sf "$WINE_PATH/wineboot" /usr/local/bin/wineboot; \
     ln -sf "$WINE_PATH/winecfg" /usr/local/bin/winecfg; \
