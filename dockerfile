@@ -39,7 +39,8 @@ RUN apt-get update; \
     dpkg-deb -x ${WINE_DEB_A2} /; \
     # dpkg-deb -x ${WINE_DEB_B1} /; \
     # dpkg-deb -x ${WINE_DEB_B2} /; \
-    chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
+    # chmod +x $WINE_PATH/wine
+    chmod +x $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
 
 # Stage 2: Final
 # Refference: https://conanexiles.fandom.com/wiki/Dedicated_Server_Setup:_Linux_and_Wine
@@ -113,7 +114,7 @@ ENV \
     \
     # Steamcmd
     STEAMCMD_PROFILE="/home/$APP_NAME/Steam" \
-    STEAMCMD_LOGS="$STEAMCMD_PROFILE/logs" \
+    \
     APP_LOGS="$LOGS/$APP_NAME" \
     \
     # Volume Prep Directories
@@ -126,6 +127,7 @@ ENV \
     $APP_FILES/ConanSandbox"
     	
 ENV \   
+    STEAMCMD_LOGS="$STEAMCMD_PROFILE/logs" \ 
     DIRECTORIES="\
     $WINE_PATH \
     $WORLD_FILES \
@@ -161,7 +163,7 @@ RUN set -eux; \
     ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log"; \
     \
     # Create symlinks for wine
-    ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
+    # ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
     ln -sf "$WINE_PATH/wine64" /usr/local/bin/wine64; \
     ln -sf "$WINE_PATH/wineboot" /usr/local/bin/wineboot; \
     ln -sf "$WINE_PATH/winecfg" /usr/local/bin/winecfg; \
