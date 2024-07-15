@@ -19,7 +19,6 @@ wine_setup (){
     if [ ! -d "$WINEPREFIX" ]; then
         # https://wiki.winehq.org/Wineboot
         log "First run detected, wait 15 seconds for wine config creation."
-        # only configure box64 if $ARCH contains arm
         if echo "$ARCH" | grep -q "arm"; then
             box64 wine64 wineboot -iuf | log_stdout
         else
@@ -111,9 +110,9 @@ server_start() {
         # Box64 + Wine: https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
         ## https://forum.armbian.com/topic/19526-how-to-install-box86-box64-wine32-wine64-winetricks-on-arm64/
         # https://community.fydeos.io/t/topic/26128
-        export BOX64_NOBANNER=1
 
         # Box64 Config, Refference: https://github.com/ptitSeb/box64/blob/main/docs/USAGE.md ,errors: https://github.com/ptitSeb/box64/issues/1182
+        export BOX64_NOBANNER=1
         export BOX64_DYNAREC_BLEEDING_EDGE=0
         export BOX64_DYNAREC_BIGBLOCK=0
         export BOX64_DYNAREC_STRONGMEM=2
@@ -130,16 +129,10 @@ server_start() {
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
 
-    # Update the ServerName configuration element
+    # Update game configs
     update_config_element "ServerName" "$SERVER_NAME"
-
-    # Update the ServerPlayerPassword configuration element
     update_config_element "ServerPassword" "$SERVER_PLAYER_PASS"
-
-    # Update the AdminPassword configuration element
     update_config_element "AdminPassword" "$SERVER_ADMIN_PASS"
-
-    # Update the serverRegion configuration element
     update_config_element "serverRegion" "$SERVER_REGION_ID"
 
     log "Configuration files updated successfully"
