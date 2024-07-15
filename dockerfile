@@ -55,9 +55,9 @@ ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
     PACKAGES_AMD64_ONLY=" \
         # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
-        lib32gcc-s1 \
-        # Maybe required for Wine64, winbind
-        winbind" \
+        lib32gcc-s1" \ 
+        # Maybe required for Wine64 'ntauth', https://packages.debian.org/trixie/winbind
+        # winbind \
         \
     PACKAGES_ARM_ONLY=" \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
