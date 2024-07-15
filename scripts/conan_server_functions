@@ -118,7 +118,7 @@ server_start() {
         export BOX64_TRACE_FILE=$LOGS/$APP_NAME'_box64.log'
         #export BOX64_NOPULSE=1
 
-        COMMAND="box64 /usr/lib/wine/wine64 $APP_FILES/$APP_EXE"
+        COMMAND="box64 wine64 $APP_FILES/$APP_EXE"
         log "Running on $ARCH, starting emulation"
 
     else

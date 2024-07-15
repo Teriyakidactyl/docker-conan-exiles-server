@@ -19,6 +19,10 @@ FROM debian:trixie-slim
 ARG DEBIAN_FRONTEND=noninteractive \
     TARGETARCH \
     PACKAGES_AMD64_ONLY=" \
+        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
+        wine \
+        ## Fix for 'ntlm_auth was not found'
+        winbind \
         # required for steamcmd, https://packages.debian.org/bookworm/lib32gcc-s1
         lib32gcc-s1" \
         \
@@ -37,11 +41,6 @@ ARG DEBIAN_FRONTEND=noninteractive \
         curl" \
         \
     PACKAGES_BASE=" \
-        # Wine, Windows Emulator, https://packages.debian.org/bookworm/wine, https://wiki.winehq.org/Debian , https://www.winehq.org/news/
-        # NOTE: WineHQ repository only offers packages for AMD64 and i386. If you need the ARM version, you can use the Debian packages. 
-        wine \
-        ## Fix for 'ntlm_auth was not found'
-        winbind \
         # Fake X-Server desktop for Wine https://packages.debian.org/bookworm/xvfb
         ## xauth needed with --no-install-recommends
         xvfb \
@@ -75,6 +74,14 @@ ENV \
     SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
     \
+    # Manual amd64 wine for Box64, https://dl.winehq.org/wine-builds > https://dl.winehq.org/wine-builds/debian/dists/trixie/main/binary-amd64/
+    WINE_PATH="/usr/lib/wine" \
+    WINE_BRANCH="stable" \
+    WINE_VERSION="9.0.0.0" \
+    WINE_ID="debian" \
+    WINE_DIST="trixie" \
+    WINE_TAG="-1" \
+    \
     # Log settings
     # TODO move to file, get more comprehensive.  
     LOG_FILTER_SKIP=""
@@ -94,8 +101,13 @@ ENV \
     $WORLD_FILES/Mods \
     $WORLD_FILES/Engine/Config \
     $APP_FILES/Engine \
-    $APP_FILES/ConanSandbox"
-
+    $APP_FILES/ConanSandbox" \
+    \
+    # Set Wine download links for amd64
+    WINE_LNKA="https://dl.winehq.org/wine-builds/${WINE_ID}/dists/${WINE_DIST}/main/binary-amd64/" \
+    WINE_DEB_A1="wine-${WINE_BRANCH}-amd64_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb" \ 
+    WINE_DEB_A2="wine-${WINE_BRANCH}_${WINE_VERSION}~${WINE_DIST}${WINE_TAG}_amd64.deb"
+	
 ENV \   
     DIRECTORIES="\
     $WORLD_FILES \
@@ -147,6 +159,22 @@ RUN set -eux; \
         # Add and configure Box64: https://box64.debian.ryanfortner.dev/
         curl -fsSL https://ryanfortner.github.io/box64-debs/box64.list -o /etc/apt/sources.list.d/box64.list; \
         curl -fsSL https://ryanfortner.github.io/box64-debs/KEY.gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/box64-debs-archive-keyring.gpg; \
+        \
+        # Install wine amd64 in arm manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+        WINE_DEB_TMP="/tmp/wine-installer"; \
+        mkdir -p $WINE_DEB_TMP; \
+        curl -sLO ${WINE_LNKA}${WINE_DEB_A1} -o $WINE_DEB_TMP/${WINE_DEB_A1}; \
+        curl -sLO ${WINE_LNKA}${WINE_DEB_A2} -o $WINE_DEB_TMP/${WINE_DEB_A2}; \
+        dpkg-deb -x ${WINE_DEB_A1} $WINE_DEB_TMP; \
+        dpkg-deb -x ${WINE_DEB_A2} $WINE_DEB_TMP; \
+        mv $WINE_DEB_TMP/opt/wine* $WINE_PATH; \
+        rm -rf $WINE_DEB_TMP; \
+        ln -s $WINE_PATH/wine /usr/local/bin/wine; \
+        ln -s $WINE_PATH/wine64 /usr/local/bin/wine64; \
+        ln -s $WINE_PATH/wineboot /usr/local/bin/wineboot; \
+        ln -s $WINE_PATH/winecfg /usr/local/bin/winecfg; \
+        ln -s $WINE_PATH/wineserver /usr/local/bin/wineserver; \
+        chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver; \
         \
         # Update and install Box86/Box64
         apt-get update; \
