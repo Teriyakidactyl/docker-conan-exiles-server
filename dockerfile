@@ -12,6 +12,8 @@ RUN apt-get update \
     && $STEAMCMD_PATH/steamcmd.sh +login anonymous +quit
 
 # Stage 2: Final
+# Refference: https://conanexiles.fandom.com/wiki/Dedicated_Server_Setup:_Linux_and_Wine
+
 FROM debian:trixie-slim
 
 ARG DEBIAN_FRONTEND=noninteractive \
@@ -21,6 +23,9 @@ ARG DEBIAN_FRONTEND=noninteractive \
         lib32gcc-s1" \
         \
     PACKAGES_ARM_ONLY=" \
+        # Auto Bin, https://packages.debian.org/trixie/binfmt-support
+        ## https://packages.debian.org/trixie/binfmt-support \
+        # binfmt-support \
         # required for Box86 > steamcmd, https://packages.debian.org/bookworm/libc6
         libc6:armhf" \
         \
