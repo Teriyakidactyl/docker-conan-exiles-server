@@ -31,16 +31,14 @@ RUN apt-get update; \
     # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
     ## Wine only translates windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
     ## Reffernecess to $WINE_PATH/wine are ommited due to not needing wine32 in this server build (using Box86 > steamcmd)
-    WINE_DEB_TMP="/tmp/wine-installer"; \
-    mkdir -p $WINE_DEB_TMP; \
     curl -sLO ${WINE_LNKA}${WINE_DEB_A1}; \
     curl -sLO ${WINE_LNKA}${WINE_DEB_A2}; \
-    curl -sLO ${WINE_LNKB}${WINE_DEB_B1}; \
-    curl -sLO ${WINE_LNKB}${WINE_DEB_B2}; \
+    # curl -sLO ${WINE_LNKB}${WINE_DEB_B1}; \
+    # curl -sLO ${WINE_LNKB}${WINE_DEB_B2}; \
     dpkg-deb -x ${WINE_DEB_A1} /; \
     dpkg-deb -x ${WINE_DEB_A2} /; \
-    dpkg-deb -x ${WINE_DEB_B1} /; \
-    dpkg-deb -x ${WINE_DEB_B2} /; \
+    # dpkg-deb -x ${WINE_DEB_B1} /; \
+    # dpkg-deb -x ${WINE_DEB_B2} /; \
     chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
 
 # Stage 2: Final
@@ -139,6 +137,9 @@ ENV \
     $STEAMCMD_LOGS \
     $SCRIPTS"
 
+# Copy steamcmd and wine
+COPY --from=opt /opt /opt
+
 # Update package lists and install required packages
 RUN set -eux; \
     \
@@ -158,6 +159,13 @@ RUN set -eux; \
     ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox"; \
     touch "$APP_LOGS/ConanSandbox.log"; \
     ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log"; \
+    \
+    # Create symlinks for wine
+    ln -sf "$WINE_PATH/wine" /usr/local/bin/wine; \
+    ln -sf "$WINE_PATH/wine64" /usr/local/bin/wine64; \
+    ln -sf "$WINE_PATH/wineboot" /usr/local/bin/wineboot; \
+    ln -sf "$WINE_PATH/winecfg" /usr/local/bin/winecfg; \
+    ln -sf "$WINE_PATH/wineserver" /usr/local/bin/wineserver; \    
     \
     chown -R $APP_NAME:$APP_NAME $DIRECTORIES; \    
     chmod 755 $DIRECTORIES; \  
@@ -202,10 +210,9 @@ USER $APP_NAME
 
 # Copy scripts after changing to APP_NAME(user)
 COPY --chown=$APP_NAME:$APP_NAME scripts $SCRIPTS
+
 # Copy steamcmd user profile (8mb)
 COPY --from=opt --chown=$APP_NAME:$APP_NAME /root/Steam $STEAMCMD_PROFILE 
-# Copy executables (714mb)
-COPY --from=opt --chown=$APP_NAME:$APP_NAME /opt /opt
 
 # https://docs.docker.com/reference/dockerfile/#volume
 VOLUME ["$APP_FILES"]
