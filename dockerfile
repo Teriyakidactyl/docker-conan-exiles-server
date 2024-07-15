@@ -31,14 +31,14 @@ RUN apt-get update; \
     # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
     ## Wine only translates windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
     ## Reffernecess to $WINE_PATH/wine are ommited due to not needing wine32 in this server build (using Box86 > steamcmd)
-    curl -sLO "${WINE_LNKA}${WINE_DEB_A1}; \
+    curl -sLO ${WINE_LNKA}${WINE_DEB_A1}; \
     curl -sLO ${WINE_LNKA}${WINE_DEB_A2}; \
     # curl -sLO ${WINE_LNKB}${WINE_DEB_B1}; \
     # curl -sLO ${WINE_LNKB}${WINE_DEB_B2}; \
     dpkg-deb -x ${WINE_DEB_A1}; \
     dpkg-deb -x ${WINE_DEB_A2}; \
-    # dpkg-deb -x ${WINE_DEB_B1} /; \
-    # dpkg-deb -x ${WINE_DEB_B2} /; \
+    # dpkg-deb -x ${WINE_DEB_B1}; \
+    # dpkg-deb -x ${WINE_DEB_B2}; \
     # chmod +x $WINE_PATH/wine
     chmod +x $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
 
