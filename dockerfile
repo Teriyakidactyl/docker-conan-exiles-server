@@ -103,13 +103,13 @@ ENV \
     SERVER_ADMIN_PASS="MySecretPasswordAdmin" \
     SERVER_NAME="Teriyakolypse" \
     SERVER_REGION_ID="1" \
-    # Explanation of numeric regions:
-    # 0 - Europe
-    # 1 - North America
-    # 2 - Asia
-    # 3 - Australia
-    # 4 - South America
-    # 5 - Japan
+        # Explanation of numeric regions:
+        # 0 - Europe
+        # 1 - North America
+        # 2 - Asia
+        # 3 - Australia
+        # 4 - South America
+        # 5 - Japan
     \
     # Log settings
     # TODO move to file, get more comprehensive.  

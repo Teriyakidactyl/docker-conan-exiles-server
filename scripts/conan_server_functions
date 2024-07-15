@@ -61,23 +61,21 @@ server_update () {
 mod_updates() {
 
     # Mod Updates
-    # Check if $SERVER_MOD_IDS exists, then use steamcmd to download mods to /world/$SERVER_NAME/Mods
+    # Check if $SERVER_MOD_IDS exists, then use steamcmd to download mods to $WORLD_FILES/Mods
     if [ -n "$SERVER_MOD_IDS" ]; then
         # Loop through the list of mod IDs and download each one
-        rm -rd /world/$SERVER_NAME/Mods/*
+        rm -rd $WORLD_FILES/Mods/*
         IFS=',' read -ra MOD_IDS <<<"$SERVER_MOD_IDS"
         for MOD_ID in "${MOD_IDS[@]}"; do
             echo "Downloading mod with ID: $MOD_ID"
-            steamcmd +force_install_dir $STEAM_PATH +login anonymous +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID +quit
-            # Find MOD_ID PAK files and create symbolic links to /world/$SERVER_NAME/Mods
-            find "$STEAM_PATH" -path "*$MOD_ID*.pak" -exec ln -sf {} /world/$SERVER_NAME/Mods \;                
+            steamcmd +force_install_dir $WORLD_FILES/Mods +login anonymous +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID +quit     
         done
         # Create the modlist.txt file, https://nodecraft.com/support/games/conan-exiles/adding-mods-to-your-conan-exiles-server#h-create-modlisttxt-config-file-ae46981fe6
-        find "/world/$SERVER_NAME/Mods" -type l -name "*.pak" -exec basename {} \; | sed 's/^/*/' > "/world/$SERVER_NAME/Mods/modlist.txt"
+        find "$WORLD_FILES/Mods" -type l -name "*.pak" -exec basename {} \; | sed 's/^/*/' > "$WORLD_FILES/Mods/modlist.txt"
         echo "Mods enabled: "
-        cat /world/$SERVER_NAME/Mods/modlist.txt
+        cat $WORLD_FILES/Mods/modlist.txt
     else
-        rm -rd /world/$SERVER_NAME/Mods/*
+        rm -rd $WORLD_FILES/Mods/*
     fi
 
 }
@@ -87,7 +85,7 @@ update_config_element() {
     local new_value="$2"
 
     # Usage example:
-    # update_config_element "ServerName" "NewServerName" "/world"
+    # update_config_element "ServerName" "NewServerName" "$WORLD_FILES"
 
     # Find and update the element in .ini files
     find "$WORLD_FILES" -type f -name "*.ini" -exec grep -q "$element" {} \; -exec sed -i "s/^$element=.*/$element=$new_value/" {} \; -exec awk -v element="$element" -v new_value="$new_value" 'BEGIN { FS = "=" } $1 == element { print FILENAME ":" NR ": " $0 }' {} \;
