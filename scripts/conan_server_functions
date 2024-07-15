@@ -61,21 +61,34 @@ server_update () {
 mod_updates() {
 
     # Mod Updates
-    # Check if $SERVER_MOD_IDS exists, then use steamcmd to download mods to $WORLD_FILES/Mods
     if [ -n "$SERVER_MOD_IDS" ]; then
-        # Loop through the list of mod IDs and download each one
-        rm -rd $WORLD_FILES/Mods/*
-        IFS=',' read -ra MOD_IDS <<<"$SERVER_MOD_IDS"
+        # Create an array of current mod IDs
+        IFS=',' read -ra MOD_IDS <<< "$SERVER_MOD_IDS"
+        
+        # Download and update mods
         for MOD_ID in "${MOD_IDS[@]}"; do
-            echo "Downloading mod with ID: $MOD_ID"
-            steamcmd +force_install_dir $WORLD_FILES/Mods +login anonymous +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID +quit     
+            log "Downloading mod with ID: $MOD_ID"
+            steamcmd +force_install_dir $WORLD_FILES/Mods +login anonymous +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID +quit    
         done
-        # Create the modlist.txt file, https://nodecraft.com/support/games/conan-exiles/adding-mods-to-your-conan-exiles-server#h-create-modlisttxt-config-file-ae46981fe6
+
+        # Remove mods that are no longer in the list
+        for MOD_DIR in "$WORLD_FILES/Mods"/*; do
+            if [ -d "$MOD_DIR" ]; then
+                MOD_ID=$(basename "$MOD_DIR")
+                if ! [[ " ${MOD_IDS[@]} " =~ " ${MOD_ID} " ]]; then
+                    log "Removing mod with ID: $MOD_ID"
+                    rm -rf "$MOD_DIR"
+                fi
+            fi
+        done
+
+        # Create the modlist.txt file
         find "$WORLD_FILES/Mods" -type l -name "*.pak" -exec basename {} \; | sed 's/^/*/' > "$WORLD_FILES/Mods/modlist.txt"
-        echo "Mods enabled: "
-        cat $WORLD_FILES/Mods/modlist.txt
+        log "Mods enabled: "
+        cat $WORLD_FILES/Mods/modlist.txt | log_stdout
     else
-        rm -rd $WORLD_FILES/Mods/*
+        rm -rf $WORLD_FILES/Mods/*
+        > "$WORLD_FILES/Mods/modlist.txt"  # Create empty modlist.txt
     fi
 
 }
