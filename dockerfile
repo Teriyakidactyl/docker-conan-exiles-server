@@ -169,13 +169,13 @@ RUN set -eux; \
         dpkg-deb -x ${WINE_DEB_A1} $WINE_DEB_TMP; \
         dpkg-deb -x ${WINE_DEB_A2} $WINE_DEB_TMP; \
         mv $WINE_DEB_TMP/opt/wine* $WINE_PATH; \
+        chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver; \
         rm -rf $WINE_DEB_TMP; \
         ln -s $WINE_PATH/wine /usr/local/bin/wine; \
         ln -s $WINE_PATH/wine64 /usr/local/bin/wine64; \
         ln -s $WINE_PATH/wineboot /usr/local/bin/wineboot; \
         ln -s $WINE_PATH/winecfg /usr/local/bin/winecfg; \
         ln -s $WINE_PATH/wineserver /usr/local/bin/wineserver; \
-        chmod +x /usr/local/bin/wine /usr/local/bin/wine64 /usr/local/bin/wineboot /usr/local/bin/winecfg /usr/local/bin/wineserver; \
         \
         # Update and install Box86/Box64
         apt-get update; \
