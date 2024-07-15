@@ -18,11 +18,14 @@ wine_setup (){
 
     # Check first time wine run, this will force Wine config creation so that our server load won't fail on first run.
     if [ ! -d "$WINEPREFIX" ]; then
-        log "First run detected, wait 15 seconds for wine config creation."
         # https://wiki.winehq.org/Wineboot
-        # FIXME this hangs on ARM
-        # FIXME this is broken in amd64 > arm, needs box64 now
-        wine64 wineboot -iuf | log_stdout
+        log "First run detected, wait 15 seconds for wine config creation."
+        # only configure box64 if $ARCH contains arm
+        if echo "$ARCH" | grep -q "arm"; then
+            box64 wine64 wineboot -iuf | log_stdout
+        else
+            wine64 wineboot -iuf | log_stdout
+        fi
     fi
 }
 
