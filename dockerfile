@@ -75,6 +75,7 @@ ENV \
     SERVER_REGION_ID="1" \
     \
     # Manual amd64 wine for Box64, https://dl.winehq.org/wine-builds > https://dl.winehq.org/wine-builds/debian/dists/trixie/main/binary-amd64/
+    ## WINE_PATH from winehq debs
     WINE_PATH="/opt/wine-stable/bin" \
     WINE_BRANCH="stable" \
     WINE_VERSION="9.0.0.0" \
@@ -171,7 +172,7 @@ RUN set -eux; \
         dpkg-deb -x ${WINE_DEB_A2} /; \
         chmod +x $WINE_PATH/wine $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver; \
         rm -rf $WINE_DEB_TMP; \
-        ln -s $WINE_PATH/wine /usr/local/bin/wine; \
+        # ln -s $WINE_PATH/wine /usr/local/bin/wine; \
         ln -s $WINE_PATH/wine64 /usr/local/bin/wine64; \
         ln -s $WINE_PATH/wineboot /usr/local/bin/wineboot; \
         ln -s $WINE_PATH/winecfg /usr/local/bin/winecfg; \
