@@ -31,14 +31,19 @@ RUN apt-get update; \
     # Install wine amd64 in arm64 manually, needed for box64, https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
     ## Wine only translates windows apps, but not arch. Windows apps are almost all x86, so wine:arm doesn't really help.
     ## Reffernecess to $WINE_PATH/wine are ommited due to not needing wine32 in this server build (using Box86 > steamcmd)
-    curl -sL "${WINE_LNKA}${WINE_DEB_A1}"; \
-    curl -sL "${WINE_LNKA}${WINE_DEB_A2}"; \
-    # curl -sL "${WINE_LNKB}${WINE_DEB_B1}" -o "/root/${WINE_DEB_B1}"; \
-    # curl -sL "${WINE_LNKB}${WINE_DEB_B2}" -o "/root/${WINE_DEB_B2}"; \
-    dpkg-deb -x "${WINE_DEB_A1}" /; \
-    dpkg-deb -x "${WINE_DEB_A2}" /; \
-    # dpkg-deb -x ${WINE_DEB_B1}; \
-    # dpkg-deb -x ${WINE_DEB_B2}; \
+    # Define the temporary directory where .deb files will be downloaded
+    TEMP_DIR="/tmp/wine_debs"; \
+    mkdir -p "$TEMP_DIR"; \
+    # Download the .deb files using curl
+    curl -sL "${WINE_LNKA}${WINE_DEB_A1}" -o "${TEMP_DIR}/${WINE_DEB_A1}"; \
+    curl -sL "${WINE_LNKA}${WINE_DEB_A2}" -o "${TEMP_DIR}/${WINE_DEB_A2}"; \
+    # curl -sL "${WINE_LNKB}${WINE_DEB_B1}" -o "${TEMP_DIR}/${WINE_DEB_B1}"; \
+    # curl -sL "${WINE_LNKB}${WINE_DEB_B2}" -o "${TEMP_DIR}/${WINE_DEB_B2}";
+    # Install the .deb packages using dpkg-deb
+    dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_A1}" /; \
+    dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_A2}" /; \
+    # dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_B1}" /; \
+    # dpkg-deb -x "${TEMP_DIR}/${WINE_DEB_B2}" /;
     # chmod +x $WINE_PATH/wine
     chmod +x $WINE_PATH/wine64 $WINE_PATH/wineboot $WINE_PATH/winecfg $WINE_PATH/wineserver;
 
@@ -93,7 +98,7 @@ ENV \
     APP_EXE="ConanSandboxServer.exe" \
     WORLD_FILES="/world" \
     STEAMCMD_PATH="/opt/steamcmd" \
-    WINE_PATH="/opt/wine-staging/bin" \
+    WINE_PATH="/opt/wine-stable/bin" \
     SCRIPTS="/usr/local/bin" \
     LOGS="/var/log" \
     TERM="xterm-256color" \
