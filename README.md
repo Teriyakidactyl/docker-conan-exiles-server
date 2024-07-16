@@ -22,9 +22,9 @@ Configure your server using the following environment variables:
 - `SERVER_PLAYER_PASS`: Server password (default: "MySecretPassword")
 - `SERVER_ADMIN_PASS`: Server password (default: "MySecretPasswordAdmin")
 - `SERVER_NAME`: Server name (default: "Teriyakolypse")
-- `SERVER_REGION_ID`: [Region ID](https://shockbyte.com/billing/knowledgebase/706/How-to-Change-your-Visible-Server-Region-in-Conan-Exiles.html)
+- `SERVER_REGION_ID`: [Region ID](https://shockbyte.com/billing/knowledgebase/706/How-to-Change-your-Visible-Server-Region-in-Conan-Exiles.html), (default: 1, 'North-America')
 - `SERVER_MOD_IDS`: Example: 3039478786,2879367569
-- `SERVER_ALLOW_LIST`: List of SteamID64 strings for allow players.
+- `SERVER_ALLOW_LIST`: List of [SteamID64](https://www.steamidfinder.com/) strings to indicate allowed players (default: empty, allow-all).  
 
 ## Usage
 

@@ -45,6 +45,7 @@ main() {
     wine_setup
     log_clean
     server_update
+    check_whitelist
     mod_updates
     server_start
     log_tails
