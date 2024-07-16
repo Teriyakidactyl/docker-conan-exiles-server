@@ -24,6 +24,7 @@ Configure your server using the following environment variables:
 - `SERVER_NAME`: Server name (default: "Teriyakolypse")
 - `SERVER_REGION_ID`: [Region ID](https://shockbyte.com/billing/knowledgebase/706/How-to-Change-your-Visible-Server-Region-in-Conan-Exiles.html)
 - `SERVER_MOD_IDS`: Example: 3039478786,2879367569
+- `SERVER_ALLOW_LIST`: List of SteamID64 strings for allow players.
 
 ## Usage
 

@@ -1,9 +1,33 @@
 # TODO UDP process monitor https://github.com/lloesche/valheim-server-docker/blob/0996dc3a1fc1f5f88bcbd4056a28254adadb884e/common#L148
 
+# TODO enable / process whitelist
+
 # For Server Download
 STEAM_CONAN_SERVER_APPID="443030"
 # For Mod Downloads
 STEAM_CONAN_CLIENT_APPID="440900"
+
+check_whitelist() {
+    if [ -n "$SERVER_ALLOW_LIST" ]; then
+        update_config_element "EnableWhitelist" "True"
+        
+        # Remove existing whitelist file if it exists
+        if [ -f "$STEAM_ALLOW_LIST_PATH" ]; then
+            rm "$STEAM_ALLOW_LIST_PATH" || { log "Failed to remove existing whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
+        fi
+        
+        # Create an empty whitelist file
+        touch "$STEAM_ALLOW_LIST_PATH" || { log "Failed to create whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
+        
+        # Populate whitelist file with STEAM_IDs
+        for STEAM_ID in "${STEAM_ALLOW_LIST_PATH[@]}"; do
+            echo "$STEAM_ID" >> "$STEAM_ALLOW_LIST_PATH" || { log "Failed to write to whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
+        done
+        
+        log "Allow list created:"
+        cat "$STEAM_ALLOW_LIST_PATH" | log_stdout
+    fi
+}
 
 wine_setup (){
 
