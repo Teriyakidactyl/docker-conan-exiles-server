@@ -8,7 +8,6 @@ STEAM_CONAN_CLIENT_APPID="440900"
 wine_setup (){
 
     export WINEARCH="win64"
-    export WINEPREFIX="/home/$APP_NAME/.wine64"
     #export WINE_MONO_VERSION=4.9.4             # https://wiki.winehq.org/Mono
     export WINEDEBUG=fixme-all                  # https://wiki.winehq.org/Debug_Channels
 

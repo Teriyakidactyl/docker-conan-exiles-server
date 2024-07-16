@@ -123,6 +123,7 @@ ENV \
     STEAM_LIBRARY="$APP_FILES/Steam" \
     \
     APP_LOGS="$LOGS/$APP_NAME" \
+    WINEPREFIX="/app/Wine" \
     \
     # Volume Prep Directories
     WORLD_DIRECTORIES="\
