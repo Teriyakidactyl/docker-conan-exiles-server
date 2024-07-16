@@ -21,7 +21,7 @@ check_whitelist() {
         touch "$STEAM_ALLOW_LIST_PATH" || { log "Failed to create whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
         
         # Populate whitelist file with STEAM_IDs
-        for STEAM_ID in "${STEAM_ALLOW_LIST_PATH[@]}"; do
+        for STEAM_ID in $SERVER_ALLOW_LIST; do
             echo "$STEAM_ID" >> "$STEAM_ALLOW_LIST_PATH" || { log "Failed to write to whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
         done
         
