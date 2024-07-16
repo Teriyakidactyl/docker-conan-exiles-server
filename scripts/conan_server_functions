@@ -51,20 +51,36 @@ server_update () {
 }
 
 mod_updates() {
+    
+    # https://forums.funcom.com/t/conan-exiles-dedicated-server-launcher-official-version-1-7-8-beta-1-7-9/21699#mods
+    # force_install_dir "$WORLD_FILES/Mods" > /Mods/steamapps/workshop/conent/$MOD_ID
+
+    # mod_updates(): Manages mods for Conan Exiles server
+    # - Downloads specified mods via SteamCMD
+    # - Removes unspecified mods
+    # - Updates modlist.txt
+    # Logic:
+    # 1. If mods specified:
+    #    - Download each mod
+    #    - Link .pak files to server mod directory
+    #    - Remove obsolete mods
+    #    - Update modlist.txt
+    # 2. If no mods: Clear mod directory, create empty modlist.txt
 
     # Mod Updates
     if [ -n "$SERVER_MOD_IDS" ]; then
         # Create an array of current mod IDs
         IFS=',' read -ra MOD_IDS <<< "$SERVER_MOD_IDS"
-        
+        rm -rd /world/$SERVER_NAME/Mods/*
         # Download and update mods
         for MOD_ID in "${MOD_IDS[@]}"; do
             log "Downloading mod with ID: $MOD_ID"
             $STEAMCMD_PATH/steamcmd.sh \
-            +force_install_dir "$WORLD_FILES/Mods" \
+            +force_install_dir "$STEAM_LIBRARY" \
             +login anonymous \
             +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID \
             +quit | log_stdout
+            find "$STEAM_PATH" -path "*$MOD_ID*.pak" -exec ln -sf {} /world/$SERVER_NAME/Mods \; 
         done
 
         # Remove mods that are no longer in the list
