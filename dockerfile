@@ -142,6 +142,7 @@ ENV \
     $APP_FILES \
     $APP_LOGS \
     $LOGS \
+    $STEAM_LIBRARY \
     $STEAMCMD_PATH \
     $STEAMCMD_LOGS \
     $SCRIPTS"
