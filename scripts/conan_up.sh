@@ -2,9 +2,39 @@
 source $SCRIPTS/conan_logging_functions
 source $SCRIPTS/conan_server_functions
 
+
+# Set Variables ---------------------------------------------------------------------------
 export ARCH=$(dpkg --print-architecture)
 export CONTAINER_START_TIME=$(date -u +%s)
 
+# only configure box64 if $ARCH contains arm
+if echo "$ARCH" | grep -q "arm"; then
+    log "Running on $ARCH, setting ENV"
+    # https://github.com/ptitSeb/box86/blob/master/docs/USAGE.md
+    export BOX86_LOG=1
+    export BOX86_TRACE_FILE=$LOGS/$APP_NAME'_box86.log'
+    export DEBUGGER=box86 
+
+    # Box64 + Wine: https://github.com/ptitSeb/box64/blob/main/docs/X64WINE.md
+    ## https://forum.armbian.com/topic/19526-how-to-install-box86-box64-wine32-wine64-winetricks-on-arm64/
+    # https://community.fydeos.io/t/topic/26128
+
+    # Box64 Config, Refference: https://github.com/ptitSeb/box64/blob/main/docs/USAGE.md ,errors: https://github.com/ptitSeb/box64/issues/1182
+    export BOX64_NOBANNER=1
+    export BOX64_DYNAREC_BLEEDING_EDGE=0
+    export BOX64_DYNAREC_BIGBLOCK=0
+    export BOX64_DYNAREC_STRONGMEM=2
+    export BOX64_LOG=1
+    export BOX64_TRACE_FILE=$LOGS/$APP_NAME'_box64.log'
+    #export BOX64_NOPULSE=1
+
+    export APP_COMMAND="box64 wine64 $APP_FILES/$APP_EXE"
+    
+else
+    export APP_COMMAND="wine64 $APP_FILES/$APP_EXE"
+fi
+
+# Main --------------------------------------------------------------------------------------
 main() {
     tail_pids=()
     trap 'down SIGTERM' SIGTERM
