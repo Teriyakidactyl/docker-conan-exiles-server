@@ -120,6 +120,7 @@ ENV \
     \
     # Steamcmd
     STEAMCMD_PROFILE="/home/$APP_NAME/Steam" \
+    STEAM_LIBRARY="$APP_FILES/Steam" \
     \
     APP_LOGS="$LOGS/$APP_NAME" \
     \
