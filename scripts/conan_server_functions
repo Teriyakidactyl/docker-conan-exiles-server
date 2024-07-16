@@ -80,7 +80,7 @@ mod_updates() {
             +login anonymous \
             +workshop_download_item $STEAM_CONAN_CLIENT_APPID $MOD_ID \
             +quit | log_stdout
-            find "$STEAM_PATH" -path "*$MOD_ID*.pak" -exec ln -sf {} /world/Mods \; 
+            find "$STEAM_LIBRARY" -path "*$MOD_ID*.pak" -exec ln -sf {} /world/Mods \; 
         done
 
         # Remove mods that are no longer in the list
