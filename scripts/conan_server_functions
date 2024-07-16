@@ -1,5 +1,4 @@
 # TODO UDP process monitor https://github.com/lloesche/valheim-server-docker/blob/0996dc3a1fc1f5f88bcbd4056a28254adadb884e/common#L148
-
 # TODO RCON Configuration https://conanexiles.fandom.com/wiki/Rcon
 # TODO RCON 'Attach' mode
 
@@ -156,7 +155,7 @@ server_start() {
 
     # Execute the server command, reff: https://www.valheimgame.com/support/a-guide-to-dedicated-servers/
 
-    # Update game configs
+    # Update game configs, https://www.bestconanhosting.com/guides/how-to-configure-your-conan-exiles-server-all-options-explained/
     update_config_element "ServerName" "$SERVER_NAME"
     update_config_element "ServerPassword" "$SERVER_PLAYER_PASS"
     update_config_element "AdminPassword" "$SERVER_ADMIN_PASS"
