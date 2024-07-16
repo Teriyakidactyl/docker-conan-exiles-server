@@ -25,6 +25,7 @@ Configure your server using the following environment variables:
 - `SERVER_REGION_ID`: [Region ID](https://shockbyte.com/billing/knowledgebase/706/How-to-Change-your-Visible-Server-Region-in-Conan-Exiles.html), (default: 1, 'North-America')
 - `SERVER_MOD_IDS`: Example: 3039478786,2879367569
 - `SERVER_ALLOW_LIST`: List of [SteamID64](https://www.steamidfinder.com/) strings to indicate allowed players (default: empty, allow-all).  
+- `SERVER_NUDITY_POLICY`: 0 none, 1 partial, 2 full (default: 0)
 
 ## Usage
 

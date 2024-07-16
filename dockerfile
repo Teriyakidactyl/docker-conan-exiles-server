@@ -102,6 +102,10 @@ ENV \
     SERVER_PLAYER_PASS="MySecretPassword" \
     SERVER_ADMIN_PASS="MySecretPasswordAdmin" \
     SERVER_NAME="Teriyakolypse" \
+    SERVER_NUDITY_POLICY="0" \
+        # 0: No nudity (characters are fully clothed).
+        # 1: Partial nudity (minimal clothing or loincloths).
+        # 2: Full nudity (characters are fully nude).
     SERVER_REGION_ID="1" \
         # Explanation of numeric regions:
         # 0 - Europe

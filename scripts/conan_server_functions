@@ -161,6 +161,7 @@ server_start() {
     update_config_element "ServerPassword" "$SERVER_PLAYER_PASS"
     update_config_element "AdminPassword" "$SERVER_ADMIN_PASS"
     update_config_element "serverRegion" "$SERVER_REGION_ID"
+    update_config_element "MaxNudity" "$SERVER_NUDITY_POLICY"
 
     log "Configuration files updated successfully"
 
