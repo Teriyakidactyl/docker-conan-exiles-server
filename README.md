@@ -9,6 +9,7 @@ This Docker image provides a Conan-Exiles dedicated server, supporting **both `a
 ## Features
 
 - Supports `amd64` and `arm64` architectures
+- Mod manager via `SERVER_MOD_IDS`
 - Runs under non-root user
 - Automatic server updates via [steamcmd](https://developer.valvesoftware.com/wiki/SteamCMD) (on reboot)
 - Cross-platform compatibility using [Box86](https://github.com/ptitSeb/box86)/[Box64](https://github.com/ptitSeb/box64) for `arm64` systems (tested on [Oracle Ampere](https://www.oracle.com/cloud/compute/arm/))
@@ -22,6 +23,7 @@ Configure your server using the following environment variables:
 - `SERVER_ADMIN_PASS`: Server password (default: "MySecretPasswordAdmin")
 - `SERVER_NAME`: Server name (default: "Teriyakolypse")
 - `SERVER_REGION_ID`: [Region ID](https://shockbyte.com/billing/knowledgebase/706/How-to-Change-your-Visible-Server-Region-in-Conan-Exiles.html)
+- `SERVER_MOD_IDS`: Example: 3039478786,2879367569
 
 ## Usage
 
