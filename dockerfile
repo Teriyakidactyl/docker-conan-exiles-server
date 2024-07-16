@@ -119,7 +119,7 @@ ENV \
     # Derivative Variables
     \
     # Steamcmd
-    STEAM_ALLOW_LIST_PATH="$WORLD_FILES/ConanSandbox/Saved/whitelist.txt" \
+    STEAM_ALLOW_LIST_PATH="$WORLD_FILES/Saved/whitelist.txt" \
     STEAMCMD_PROFILE="/home/$APP_NAME/Steam" \
     STEAM_LIBRARY="$APP_FILES/Steam" \
     \

@@ -1,6 +1,7 @@
 # TODO UDP process monitor https://github.com/lloesche/valheim-server-docker/blob/0996dc3a1fc1f5f88bcbd4056a28254adadb884e/common#L148
 
-# TODO enable / process whitelist
+# TODO RCON Configuration https://conanexiles.fandom.com/wiki/Rcon
+# TODO RCON 'Attach' mode
 
 # For Server Download
 STEAM_CONAN_SERVER_APPID="443030"
