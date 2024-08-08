@@ -54,6 +54,8 @@ wine_setup (){
 
 server_update () {
 
+    # TODO evalute if APP_PID is present, if so take down for update.
+
     log "Starting steamcmd update"
 
     if [ ! -d "/home/$APP_NAME/Steam" ]; then \
@@ -73,6 +75,30 @@ server_update () {
     validate \
     +quit | log_stdout
 
+}
+
+needs_update() {
+    local STEAM_CONAN_SERVER_APPID=$1
+    local API_URL="https://api.steamcmd.net/v1/info/$STEAM_CONAN_SERVER_APPID"
+    local MANIFEST_FILE="$APP_FILES/steamapps/appmanifest_${STEAM_CONAN_SERVER_APPID}.acf"
+
+    # TODO log local and remote version
+    # Don't refference ENV, refference local?
+
+    # Get buildid from API
+    local API_BUILDID=$(curl -s "$API_URL" | grep -oP '"public":\s*\{\s*"buildid":\s*"\K[^"]+')
+
+    # Get buildid from local manifest
+    local LOCAL_BUILDID=$(grep -oP '"buildid"\s+"\K[^"]+' "$MANIFEST_FILE")
+
+    # Compare buildids
+    if [[ "$API_BUILDID" > "$LOCAL_BUILDID" ]]; then
+        echo "Update Needed"
+        return 0  # True, update needed
+    else
+        echo "Undate not Needed"
+        return 1  # False, no update needed
+    fi
 }
 
 mod_updates() {

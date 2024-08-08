@@ -58,6 +58,8 @@ main() {
             log "$(uptime)"
         fi
 
+        # TODO at current Hour 3AM, check for update
+
         # Sleep for 1 minute before checking again
         sleep 60
     done
