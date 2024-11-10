@@ -9,7 +9,7 @@ ENV STEAMCMD_PATH="/opt/steamcmd"
 ## WINE_PATH from winehq debs
 ENV WINE_BRANCH="staging" \
     WINE_PATH="/opt/wine-staging/bin" \
-    WINE_VERSION="9.13" \
+    WINE_VERSION="9.21" \
     WINE_ID="debian" \
     WINE_DIST="trixie" \
     WINE_TAG="-1" 
