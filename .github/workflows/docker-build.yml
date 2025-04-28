@@ -6,6 +6,7 @@ on:
       - dev
       - main
     paths:
+      - 'Dockerfile'
       - 'dockerfile'
       - '.github/workflows/**'
       - 'scripts/**'
@@ -14,6 +15,7 @@ on:
       - dev
       - main
     paths:
+      - 'Dockerfile'
       - 'dockerfile'
       - '.github/workflows/**'
       - 'scripts/**'
