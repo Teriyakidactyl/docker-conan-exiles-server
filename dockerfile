@@ -44,17 +44,6 @@ ENV \
     # Log settings
     LOG_FILTER_SKIP=""
 
-# NOTE unorthodox APP_EXE & APP_ARGS due to layers of commands (wine, box, xvfb, conan)
-# FIXME docker-up, using APP_EXE like this will break $APP_FILES/$APP_EXE refferences in up.sh
-ENV APP_ARGS="\
---auto-servernum \
---server-args='-screen 0 640x480x24:32 -nolisten tcp $APP_PREFIX $APP_FILES/$APP_EXE_2' \
--nosteamclient \
--game \
--server \
--log"
-
-
 # Create additional directories and links specific to Conan Exiles
 RUN mkdir -p $WORLD_FILES/Saved/Logs \
              $WORLD_FILES/Config \
@@ -66,8 +55,9 @@ RUN mkdir -p $WORLD_FILES/Saved/Logs \
     ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" && \
     ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" && \
     ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox" && \
-    touch "$APP_LOGS/ConanSandbox.log" && \
-    ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log" && \
+    # FIXME APP_LOGS don't exist yet
+    # touch "$APP_LOGS/ConanSandbox.log" && \
+    # ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log" && \
     chown -R $APP_USER:$APP_USER $WORLD_FILES $APP_FILES $APP_LOGS
 
 COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} scripts ${SCRIPTS}
