@@ -6,7 +6,7 @@ on:
       - dev
       - main
     paths:
-      - 'Dockerfile'
+      - 'dockerfile'
       - '.github/workflows/**'
       - 'scripts/**'
   pull_request:
@@ -14,7 +14,7 @@ on:
       - dev
       - main
     paths:
-      - 'Dockerfile'
+      - 'dockerfile'
       - '.github/workflows/**'
       - 'scripts/**'
   workflow_dispatch:  # Allows manual triggering
