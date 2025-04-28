@@ -4,7 +4,7 @@
 CONTAINER_NAME="conan-server"
 
 # Image name
-IMAGE_NAME="ghcr.io/teriyakidactyl/docker-conan-exiles-server:trixie_dev"
+IMAGE_NAME="ghcr.io/teriyakidactyl/docker-conan-exiles-server:bookworm-20250407-slim_wine-stable-10.0.0.0_dev"
 
 # Check if container already exists
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then

@@ -31,6 +31,7 @@ ENV \
     -server \
     -log' \
     \
+    # SteamCMD
     STEAM_SERVER_APPID="443030" \
     STEAM_PLATFORM_TYPE="windows" \
     \
