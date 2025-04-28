@@ -39,7 +39,9 @@ env:
   MATRIX_BASE_TAGS: |
     trixie-20250407-slim_wine-staging-10.5
     bookworm-20250407-slim_wine-staging-10.5
-
+    trixie-20250407-slim_wine-stable-10.0.0.0
+    bookworm-20250407-slim_wine-stable-10.0.0.0
+    
   # Target platforms
   MATRIX_PLATFORMS: |
     linux/amd64
@@ -304,4 +306,3 @@ jobs:
         run: |
           echo "::notice::Workflow completed with status: ${{ steps.status.outputs.status }}"
           echo "::notice::${{ steps.status.outputs.message }}"
-          
