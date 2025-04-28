@@ -1,5 +1,7 @@
 #!/bin/bash
 
+log "Creating $APP_NAME xvfb-run APP_COMMAND"
+
 export APP_COMMAND="\
 xvfb-run \
 --auto-servernum \
