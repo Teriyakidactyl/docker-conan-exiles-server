@@ -130,9 +130,13 @@ jobs:
           # Generate tag parts (without registry path) for this build
           # For normal builds (main branch)
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # Versioned tag (includes base image tag)
-            VERSIONED_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)-$ARCHITECTURE
-            echo "VERSIONED_TAG=$VERSIONED_TAG" >> $GITHUB_ENV
+            # Preserve full base tag info including Wine version
+            FULL_TAG="${{ matrix.base_tag }}-$ARCHITECTURE"
+            echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
+            
+            # Simple version without Wine info (e.g., "trixie-amd64")
+            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)-$ARCHITECTURE
+            echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
             
             # Latest tag per architecture (if using the default base tag)
             if [[ "${{ matrix.base_tag }}" == "trixie-20250407-slim_wine-staging-10.5" ]]; then
@@ -141,9 +145,14 @@ jobs:
               echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
             fi
           else
-            # For dev branch, add _dev suffix
-            VERSIONED_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_dev-$ARCHITECTURE
-            echo "VERSIONED_TAG=$VERSIONED_TAG" >> $GITHUB_ENV
+            # For dev branch, add _dev suffix but still preserve Wine info
+            FULL_TAG="${{ matrix.base_tag }}_dev-$ARCHITECTURE"
+            echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
+            
+            # Simple version with dev suffix
+            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_dev-$ARCHITECTURE
+            echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
+            
             echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
           fi
           
@@ -162,7 +171,8 @@ jobs:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
             type=raw,value=${{ env.BRANCH_TAG }}
-            type=raw,value=${{ env.VERSIONED_TAG }}
+            type=raw,value=${{ env.FULL_TAG }}
+            type=raw,value=${{ env.SIMPLE_TAG }}
             ${{ env.LATEST_ARCH_TAG != '' && format('type=raw,value={0}', env.LATEST_ARCH_TAG) || '' }}
           labels: |
             org.opencontainers.image.title=Conan Exiles Server Docker Image
@@ -224,10 +234,13 @@ jobs:
           # Extract the base distribution (e.g., trixie) from the full tag
           BASE_DIST=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)
           
-          # Generate manifest tag name without registry path
+          # For main branch
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # For main branch
-            echo "MANIFEST_TAG=$BASE_DIST" >> $GITHUB_ENV
+            # Simple tag (e.g., "trixie")
+            echo "SIMPLE_MANIFEST_TAG=$BASE_DIST" >> $GITHUB_ENV
+            
+            # Full tag with Wine info
+            echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}" >> $GITHUB_ENV
             
             # Set latest tag if this is the default base tag
             if [[ "${{ matrix.base_tag }}" == "trixie-20250407-slim_wine-staging-10.5" ]]; then
@@ -238,19 +251,27 @@ jobs:
             fi
           else
             # For dev branch, add _dev suffix
-            echo "MANIFEST_TAG=${BASE_DIST}_dev" >> $GITHUB_ENV
+            echo "SIMPLE_MANIFEST_TAG=${BASE_DIST}_dev" >> $GITHUB_ENV
+            echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}_dev" >> $GITHUB_ENV
             echo "HAS_LATEST_TAG=false" >> $GITHUB_ENV
           fi
       
       # Create and push multi-architecture manifests using buildx imagetools
       - name: Create and push multi-architecture manifests
         run: |
-          # Create manifest tag
-          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }} \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }}-amd64 \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }}-arm64
+          # Create simple manifest tag (e.g., "trixie")
+          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }} \
+            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}-amd64 \
+            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}-arm64
           
-          echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }}"
+          echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}"
+          
+          # Create full manifest tag with Wine info (e.g., "trixie-20250407-slim_wine-staging-10.5")
+          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }} \
+            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}-amd64 \
+            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}-arm64
+          
+          echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}"
           
           # Create latest tag if applicable
           if [[ "${{ env.HAS_LATEST_TAG }}" == "true" ]]; then

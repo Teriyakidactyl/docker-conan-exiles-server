@@ -20,8 +20,17 @@ LABEL org.opencontainers.image.title="Conan Exiles Server" \
 # Set game-specific environment variables
 ENV \
     # Primary Variables
+    # Conan CLI ARGS:    
+    ## https://forums.funcom.com/t/conan-exiles-dedicated-server-launcher-official-version-1-7-8-beta-1-7-9/21699
+    ## https://steamcommunity.com/sharedfiles/filedetails/?id=853969975
     APP_NAME="conan" \
     APP_EXE="ConanSandboxServer.exe" \
+    APP_ARGS='\
+    -nosteamclient \
+    -game \
+    -server \
+    -log' \
+    \
     STEAM_SERVER_APPID="443030" \
     STEAM_PLATFORM_TYPE="windows" \
     \
