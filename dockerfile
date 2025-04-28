@@ -23,6 +23,7 @@ ENV \
     APP_NAME="conan" \
     APP_EXE="ConanSandboxServer.exe" \
     STEAM_SERVER_APPID="443030" \
+    STEAM_PLATFORM_TYPE="windows" \
     \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
