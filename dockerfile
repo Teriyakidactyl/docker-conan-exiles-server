@@ -23,7 +23,7 @@ ENV \
     APP_NAME="conan" \
     APP_EXE="xvfb-run" \
     APP_EXE_2="ConanSandboxServer.exe" \
-    STEAM_APP_ID="443030" \
+    STEAM_SERVER_APPID="443030" \
     \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
