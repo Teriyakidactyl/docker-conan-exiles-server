@@ -70,6 +70,8 @@ RUN mkdir -p $WORLD_FILES/Saved/Logs \
     # ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log" && \
     chown -R $APP_USER:$APP_USER $WORLD_FILES $APP_FILES $APP_LOGS
 
+COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} scripts ${SCRIPTS}
+
 # Expose necessary ports
 EXPOSE \
     # Game port (UDP): Default 7777, configurable in Engine.ini or via command line
