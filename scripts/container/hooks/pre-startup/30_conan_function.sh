@@ -69,26 +69,26 @@ mod_updates() {
 }
 
 check_whitelist() {
-    if [ -n "$SERVER_ALLOW_LIST" ]; then
+    if [ -n "$STEAM_ID_ALLOW_LIST" ]; then
         update_config_element "EnableWhitelist" "True"
         
         # Remove existing whitelist file if it exists
-        if [ -f "$STEAM_ALLOW_LIST_PATH" ]; then
-            rm "$STEAM_ALLOW_LIST_PATH" || { log "Failed to remove existing whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
+        if [ -f "$STEAM_ID_ALLOW_LIST_PATH" ]; then
+            rm "$STEAM_ID_ALLOW_LIST_PATH" || { log "Failed to remove existing whitelist file: $STEAM_ID_ALLOW_LIST_PATH"; return 1; }
         fi
         
         # Create an empty whitelist file
-        touch "$STEAM_ALLOW_LIST_PATH" || { log "Failed to create whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
+        touch "$STEAM_ID_ALLOW_LIST_PATH" || { log "Failed to create whitelist file: $STEAM_ID_ALLOW_LIST_PATH"; return 1; }
         
         # Populate whitelist file with STEAM_IDs
-        # Split SERVER_ALLOW_LIST on commas and iterate over each part
-        IFS=", " read -r -a STEAM_IDS <<< "$SERVER_ALLOW_LIST"
+        # Split STEAMID_ALLOW_LIST on commas and iterate over each part
+        IFS=", " read -r -a STEAM_IDS <<< "$STEAM_ID_ALLOW_LIST"
         for STEAM_ID in "${STEAM_IDS[@]}"; do
-            echo "$STEAM_ID" >> "$STEAM_ALLOW_LIST_PATH" || { log "Failed to write to whitelist file: $STEAM_ALLOW_LIST_PATH"; return 1; }
+            echo "$STEAM_ID" >> "$STEAM_ID_ALLOW_LIST_PATH" || { log "Failed to write to whitelist file: $STEAM_ID_ALLOW_LIST_PATH"; return 1; }
         done
         
         log "Allow list created:"
-        cat "$STEAM_ALLOW_LIST_PATH" | log_stdout
+        cat "$STEAM_ID_ALLOW_LIST_PATH" | log_stdout
     fi
 }
 

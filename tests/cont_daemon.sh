@@ -25,6 +25,6 @@ docker run -d \
   -e SERVER_NAME="Teriyakolypse" \
   -e SERVER_PLAYER_PASS="MySecretPassword" \
   -e SERVER_ADMIN_PASS="MySecretPasswordAdmin" \
-  -e SERVER_NUDITY_POLICY="0" \
+  -e SERVER_NUDITY_POLICY="1" \
   -e SERVER_REGION_ID="1" \
   ${IMAGE_NAME}
