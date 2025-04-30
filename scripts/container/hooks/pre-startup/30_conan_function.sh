@@ -15,7 +15,6 @@ update_config_element() {
 log "+----------------------------------+"
 log "SERVER_NAME: $SERVER_NAME"
 log "SERVER_PLAYER_PASS: $SERVER_PLAYER_PASS"
-log "WORLD_NAME: $WORLD_NAME"
 log "SERVER_PUBLIC: $SERVER_PUBLIC"
 log "+----------------------------------+"
 sleep 1
