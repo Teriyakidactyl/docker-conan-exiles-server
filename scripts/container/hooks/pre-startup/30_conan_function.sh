@@ -31,9 +31,9 @@ mod_updates() {
     # 2. If no mods: Clear mod directory, create empty modlist.txt
 
     # Mod Updates
-    if [ -n "$SERVER_MOD_IDS" ]; then
+    if [ -n "$STEAM_WORKSHOP_MOD_IDS" ]; then
         # Create an array of current mod IDs
-        IFS=',' read -ra MOD_IDS <<< "$SERVER_MOD_IDS"
+        IFS=',' read -ra MOD_IDS <<< "$STEAM_WORKSHOP_MOD_IDS"
         rm -rd /world/Mods/*
         # Download and update mods
         for MOD_ID in "${MOD_IDS[@]}"; do
