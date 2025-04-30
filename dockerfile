@@ -33,6 +33,7 @@ ENV \
     \
     # SteamCMD
     STEAM_SERVER_APPID="443030" \
+    STEAM_CLIENT_APPID="440900" \
     STEAM_PLATFORM_TYPE="windows" \
     \
     # App Variables
@@ -65,10 +66,9 @@ RUN mkdir -p $WORLD_FILES/Saved/Logs \
     ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" && \
     ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" && \
     ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox" && \
-    # FIXME APP_LOGS don't exist yet
-    # touch "$APP_LOGS/ConanSandbox.log" && \
-    # ln -sf "$APP_LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log" && \
-    chown -R $APP_USER:$APP_USER $WORLD_FILES $APP_FILES $APP_LOGS
+    touch "$LOGS/ConanSandbox.log" && \
+    ln -sf "$LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log" && \
+    chown -R $APP_USER:$APP_USER $WORLD_FILES $APP_FILES $LOGS
 
 COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} scripts ${SCRIPTS}
 
