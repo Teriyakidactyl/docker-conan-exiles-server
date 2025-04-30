@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Container name
-CONTAINER_NAME="conan-server"
+CONTAINER_NAME="Conan-Server-ARM"
 
 # Image name
 IMAGE_NAME="ghcr.io/teriyakidactyl/docker-conan-exiles-server:bookworm-20250407-slim_wine-stable-10.0.0.0_dev"
@@ -28,3 +28,6 @@ docker run -d \
   -e SERVER_NUDITY_POLICY="1" \
   -e SERVER_REGION_ID="1" \
   ${IMAGE_NAME}
+
+  btop
+  
