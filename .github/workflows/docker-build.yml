@@ -37,10 +37,10 @@ env:
   # Matrix Configuration - Base image tags to build upon
   # These should match the available tags from the base image
   MATRIX_BASE_TAGS: |
-    trixie-20250407-slim_wine-staging-10.5
-    bookworm-20250407-slim_wine-staging-10.5
-    trixie-20250407-slim_wine-stable-10.0.0.0
-    bookworm-20250407-slim_wine-stable-10.0.0.0
+    trixie-20260421-slim_wine-staging-11.8
+    bookworm-20260421-slim_wine-staging-11.8
+    trixie-20260421-slim_wine-stable-11.0.0.0
+    bookworm-20260421-slim_wine-stable-11.0.0.0
     
   # Target platforms
   MATRIX_PLATFORMS: |
@@ -126,40 +126,40 @@ jobs:
           echo "BASE_BRANCH_SUFFIX=$BASE_BRANCH_SUFFIX" >> $GITHUB_ENV
           
           # Set the base image tag with architecture and branch suffix
-          BASE_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}-$ARCHITECTURE"
+          BASE_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}_$ARCHITECTURE"
           echo "BASE_TAG=$BASE_TAG" >> $GITHUB_ENV
           
           # Generate tag parts (without registry path) for this build
-          # For normal builds (main branch)
+          # For main branch
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             # Preserve full base tag info including Wine version
-            FULL_TAG="${{ matrix.base_tag }}-$ARCHITECTURE"
+            FULL_TAG="${{ matrix.base_tag }}_$ARCHITECTURE"
             echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
             
-            # Simple version without Wine info (e.g., "trixie-amd64")
-            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)-$ARCHITECTURE
+            # Simple version without Wine info (e.g., "trixie_amd64")
+            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_$ARCHITECTURE
             echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
             
             # Latest tag per architecture (if using the default base tag)
-            if [[ "${{ matrix.base_tag }}" == "trixie-20250407-slim_wine-staging-10.5" ]]; then
-              echo "LATEST_ARCH_TAG=latest-$ARCHITECTURE" >> $GITHUB_ENV
+            if [[ "${{ matrix.base_tag }}" == "trixie-20260421-slim_wine-staging-11.8" ]]; then
+              echo "LATEST_ARCH_TAG=latest_$ARCHITECTURE" >> $GITHUB_ENV
             else
               echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
             fi
           else
             # For dev branch, add _dev suffix but still preserve Wine info
-            FULL_TAG="${{ matrix.base_tag }}_dev-$ARCHITECTURE"
+            FULL_TAG="${{ matrix.base_tag }}_dev_$ARCHITECTURE"
             echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
             
             # Simple version with dev suffix
-            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_dev-$ARCHITECTURE
+            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_dev_$ARCHITECTURE
             echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
             
             echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
           fi
           
           # Branch tag
-          BRANCH_TAG="${{ github.ref_name }}-$ARCHITECTURE"
+          BRANCH_TAG="${{ github.ref_name }}_$ARCHITECTURE"
           echo "BRANCH_TAG=$BRANCH_TAG" >> $GITHUB_ENV
           
           # Set build date for metadata
@@ -190,7 +190,7 @@ jobs:
       # Build and push Docker image
       - name: Build and push Docker image
         id: docker_build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
@@ -201,6 +201,7 @@ jobs:
             BASE_TAG=${{ env.BASE_TAG }}
             SOURCE_COMMIT=${{ github.sha }}
             BUILD_DATE=${{ env.BUILD_DATE }}
+            BRANCH_NAME=${{ github.ref_name }}
           platforms: ${{ matrix.platform }}
           cache-from: |
             type=gha,scope=${{ matrix.base_tag }}-${{ matrix.platform }}
@@ -245,7 +246,7 @@ jobs:
             echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}" >> $GITHUB_ENV
             
             # Set latest tag if this is the default base tag
-            if [[ "${{ matrix.base_tag }}" == "trixie-20250407-slim_wine-staging-10.5" ]]; then
+            if [[ "${{ matrix.base_tag }}" == "trixie-20260421-slim_wine-staging-11.8" ]]; then
               echo "LATEST_TAG=latest" >> $GITHUB_ENV
               echo "HAS_LATEST_TAG=true" >> $GITHUB_ENV
             else
@@ -263,23 +264,23 @@ jobs:
         run: |
           # Create simple manifest tag (e.g., "trixie")
           docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }} \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}-amd64 \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}-arm64
+            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_amd64 \
+            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_arm64
           
           echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}"
           
-          # Create full manifest tag with Wine info (e.g., "trixie-20250407-slim_wine-staging-10.5")
+          # Create full manifest tag with Wine info (e.g., "trixie-20260421-slim_wine-staging-11.8")
           docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }} \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}-amd64 \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}-arm64
+            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}_amd64 \
+            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}_arm64
           
           echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}"
           
           # Create latest tag if applicable
           if [[ "${{ env.HAS_LATEST_TAG }}" == "true" ]]; then
             docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:latest \
-              ${{ env.REGISTRY_IMAGE }}:latest-amd64 \
-              ${{ env.REGISTRY_IMAGE }}:latest-arm64
+              ${{ env.REGISTRY_IMAGE }}:latest_amd64 \
+              ${{ env.REGISTRY_IMAGE }}:latest_arm64
               
             echo "::notice::Successfully created 'latest' multi-architecture manifest"
           fi

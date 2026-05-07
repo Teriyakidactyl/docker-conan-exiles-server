@@ -1,5 +1,5 @@
 # Set ARG for building
-ARG BASE_TAG=trixie-20250407-slim_wine-staging-10.5
+ARG BASE_TAG=trixie-20260421-slim_wine-staging-11.8
 
 # Use the base SteamCMD server image
 FROM ghcr.io/teriyakidactyl/docker-steamcmd-server:${BASE_TAG}
