@@ -37,10 +37,10 @@ env:
   # Matrix Configuration - Base image tags to build upon
   # These should match the available tags from the base image
   MATRIX_BASE_TAGS: |
-    trixie-20260421-slim_wine-staging-11.8
-    bookworm-20260421-slim_wine-staging-11.8
-    trixie-20260421-slim_wine-stable-11.0.0.0
-    bookworm-20260421-slim_wine-stable-11.0.0.0
+    trixie_wine-staging
+    bookworm_wine-staging
+    trixie_wine-stable
+    bookworm_wine-stable
     
   # Target platforms
   MATRIX_PLATFORMS: |
@@ -125,42 +125,31 @@ jobs:
           fi
           echo "BASE_BRANCH_SUFFIX=$BASE_BRANCH_SUFFIX" >> $GITHUB_ENV
           
-          # Set the base image tag with architecture and branch suffix
-          BASE_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}_$ARCHITECTURE"
+          # Pull a published multi-architecture base alias. Buildx chooses the
+          # requested platform; do not couple this derivative to the base's
+          # internal architecture-tag spelling.
+          BASE_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}"
           echo "BASE_TAG=$BASE_TAG" >> $GITHUB_ENV
           
-          # Generate tag parts (without registry path) for this build
-          # For main branch
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # Preserve full base tag info including Wine version
-            FULL_TAG="${{ matrix.base_tag }}_$ARCHITECTURE"
-            echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
-            
-            # Simple version without Wine info (e.g., "trixie_amd64")
-            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_$ARCHITECTURE
+          # Full tags are unique per compatibility alias. Short distro and
+          # branch/latest aliases are published only from Wine staging so
+          # stable and staging jobs cannot race to overwrite the same tag.
+          FULL_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}_$ARCHITECTURE"
+          echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
+          echo "SIMPLE_TAG=" >> $GITHUB_ENV
+          echo "BRANCH_TAG=" >> $GITHUB_ENV
+          echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
+
+          if [[ "${{ matrix.base_tag }}" == *_wine-staging ]]; then
+            BASE_DIST=$(echo "${{ matrix.base_tag }}" | cut -d'_' -f1)
+            SIMPLE_TAG="${BASE_DIST}${BASE_BRANCH_SUFFIX}_$ARCHITECTURE"
             echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
-            
-            # Latest tag per architecture (if using the default base tag)
-            if [[ "${{ matrix.base_tag }}" == "trixie-20260421-slim_wine-staging-11.8" ]]; then
+            echo "BRANCH_TAG=${{ github.ref_name }}_$ARCHITECTURE" >> $GITHUB_ENV
+
+            if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ matrix.base_tag }}" == "trixie_wine-staging" ]]; then
               echo "LATEST_ARCH_TAG=latest_$ARCHITECTURE" >> $GITHUB_ENV
-            else
-              echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
             fi
-          else
-            # For dev branch, add _dev suffix but still preserve Wine info
-            FULL_TAG="${{ matrix.base_tag }}_dev_$ARCHITECTURE"
-            echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
-            
-            # Simple version with dev suffix
-            SIMPLE_TAG=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)_dev_$ARCHITECTURE
-            echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
-            
-            echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
           fi
-          
-          # Branch tag
-          BRANCH_TAG="${{ github.ref_name }}_$ARCHITECTURE"
-          echo "BRANCH_TAG=$BRANCH_TAG" >> $GITHUB_ENV
           
           # Set build date for metadata
           echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
@@ -172,9 +161,9 @@ jobs:
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=raw,value=${{ env.BRANCH_TAG }}
             type=raw,value=${{ env.FULL_TAG }}
-            type=raw,value=${{ env.SIMPLE_TAG }}
+            ${{ env.SIMPLE_TAG != '' && format('type=raw,value={0}', env.SIMPLE_TAG) || '' }}
+            ${{ env.BRANCH_TAG != '' && format('type=raw,value={0}', env.BRANCH_TAG) || '' }}
             ${{ env.LATEST_ARCH_TAG != '' && format('type=raw,value={0}', env.LATEST_ARCH_TAG) || '' }}
           labels: |
             org.opencontainers.image.title=Conan Exiles Server Docker Image
@@ -193,7 +182,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
+          file: ./dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -234,42 +223,37 @@ jobs:
       - name: Generate manifest tag names
         id: manifest-tags
         run: |
-          # Extract the base distribution (e.g., trixie) from the full tag
-          BASE_DIST=$(echo "${{ matrix.base_tag }}" | cut -d'-' -f1)
-          
-          # For main branch
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # Simple tag (e.g., "trixie")
-            echo "SIMPLE_MANIFEST_TAG=$BASE_DIST" >> $GITHUB_ENV
-            
-            # Full tag with Wine info
-            echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}" >> $GITHUB_ENV
-            
-            # Set latest tag if this is the default base tag
-            if [[ "${{ matrix.base_tag }}" == "trixie-20260421-slim_wine-staging-11.8" ]]; then
-              echo "LATEST_TAG=latest" >> $GITHUB_ENV
-              echo "HAS_LATEST_TAG=true" >> $GITHUB_ENV
-            else
-              echo "HAS_LATEST_TAG=false" >> $GITHUB_ENV
-            fi
-          else
-            # For dev branch, add _dev suffix
-            echo "SIMPLE_MANIFEST_TAG=${BASE_DIST}_dev" >> $GITHUB_ENV
-            echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}_dev" >> $GITHUB_ENV
-            echo "HAS_LATEST_TAG=false" >> $GITHUB_ENV
+          BRANCH_SUFFIX=""
+          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
+            BRANCH_SUFFIX="_dev"
+          fi
+
+          BASE_DIST=$(echo "${{ matrix.base_tag }}" | cut -d'_' -f1)
+          echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}${BRANCH_SUFFIX}" >> $GITHUB_ENV
+          echo "HAS_SIMPLE_TAG=false" >> $GITHUB_ENV
+          echo "HAS_LATEST_TAG=false" >> $GITHUB_ENV
+
+          if [[ "${{ matrix.base_tag }}" == *_wine-staging ]]; then
+            echo "SIMPLE_MANIFEST_TAG=${BASE_DIST}${BRANCH_SUFFIX}" >> $GITHUB_ENV
+            echo "HAS_SIMPLE_TAG=true" >> $GITHUB_ENV
+          fi
+
+          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ matrix.base_tag }}" == "trixie_wine-staging" ]]; then
+            echo "LATEST_TAG=latest" >> $GITHUB_ENV
+            echo "HAS_LATEST_TAG=true" >> $GITHUB_ENV
           fi
       
       # Create and push multi-architecture manifests using buildx imagetools
       - name: Create and push multi-architecture manifests
         run: |
-          # Create simple manifest tag (e.g., "trixie")
-          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }} \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_amd64 \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_arm64
-          
-          echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}"
-          
-          # Create full manifest tag with Wine info (e.g., "trixie-20260421-slim_wine-staging-11.8")
+          if [[ "${{ env.HAS_SIMPLE_TAG }}" == "true" ]]; then
+            docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }} \
+              ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_amd64 \
+              ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_arm64
+            echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}"
+          fi
+
+          # Full aliases retain the compatibility layer and cannot collide.
           docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }} \
             ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}_amd64 \
             ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}_arm64
