@@ -1,8 +1,12 @@
-# Set ARG for building
-ARG BASE_TAG=trixie-20260421-slim_wine-staging-11.8
+# Follow a supported shared-base alias instead of pinning a Wine version in the
+# derivative. docker-steamcmd-server owns Wine/Box compatibility policy.
+ARG BASE_IMAGE=ghcr.io/teriyakidactyl/docker-steamcmd-server
+ARG BASE_TAG=trixie_wine-staging
 
-# Use the base SteamCMD server image
-FROM ghcr.io/teriyakidactyl/docker-steamcmd-server:${BASE_TAG}
+FROM ${BASE_IMAGE}:${BASE_TAG}
+
+ARG BASE_IMAGE
+ARG BASE_TAG
 
 # Build ARGs for metadata
 ARG SOURCE_COMMIT
@@ -15,6 +19,7 @@ LABEL org.opencontainers.image.title="Conan Exiles Server" \
       org.opencontainers.image.vendor="TeriyakiDactyl" \
       org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.revision="${SOURCE_COMMIT}" \
+      org.opencontainers.image.base.name="${BASE_IMAGE}:${BASE_TAG}" \
       com.example.git.branch="${BRANCH_NAME}"
 
 # Set game-specific environment variables
@@ -35,6 +40,7 @@ ENV \
     STEAM_SERVER_APPID="443030" \
     STEAM_CLIENT_APPID="440900" \
     STEAM_PLATFORM_TYPE="windows" \
+    STEAM_ID_ALLOW_LIST_PATH="$WORLD_FILES/Saved/whitelist.txt" \
     \
     # App Variables
     SERVER_PLAYER_PASS="MySecretPassword" \
@@ -45,6 +51,8 @@ ENV \
         # 1: Partial nudity (minimal clothing or loincloths).
         # 2: Full nudity (characters are fully nude).
     SERVER_REGION_ID="1" \
+    SERVER_MOD_IDS="" \
+    SERVER_ALLOW_LIST="" \
         # 0 - Europe
         # 1 - North America
         # 2 - Asia
@@ -55,21 +63,9 @@ ENV \
     # Log settings
     LOG_FILTER_SKIP=""
 
-# Create additional directories and links specific to Conan Exiles
-RUN mkdir -p $WORLD_FILES/Saved/Logs \
-             $WORLD_FILES/Config \
-             $WORLD_FILES/Mods \
-             $WORLD_FILES/Engine/Config \
-             $APP_FILES/Engine \
-             $APP_FILES/ConanSandbox && \
-    ln -sf "$WORLD_FILES/Engine/Config" "$APP_FILES/Engine" && \
-    ln -sf "$WORLD_FILES/Saved" "$APP_FILES/ConanSandbox" && \
-    ln -sf "$WORLD_FILES/Config" "$APP_FILES/ConanSandbox" && \
-    ln -sf "$WORLD_FILES/Mods" "$APP_FILES/ConanSandbox" && \
-    touch "$LOGS/ConanSandbox.log" && \
-    ln -sf "$LOGS/ConanSandbox.log" "$WORLD_FILES/Saved/Logs/ConanSandbox.log" && \
-    chown -R $APP_USER:$APP_USER $WORLD_FILES $APP_FILES $LOGS
-
+# Persistence links are created by the pre-start hook after SteamCMD updates.
+# /app and /world are runtime mount points; baking links beneath them into the
+# image makes those links disappear when a real volume or bind mount is used.
 COPY --chown=${CONTAINER_USER}:${CONTAINER_USER} scripts ${SCRIPTS}
 
 # Expose necessary ports
