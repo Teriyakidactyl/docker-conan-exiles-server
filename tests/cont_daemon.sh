@@ -1,33 +1,28 @@
 #!/bin/bash
 
-# Container name
-CONTAINER_NAME="Conan-Server-ARM"
+set -Eeuo pipefail
 
-# Image name
-IMAGE_NAME="ghcr.io/teriyakidactyl/docker-conan-exiles-server:bookworm-20250407-slim_wine-stable-10.0.0.0_dev"
+CONTAINER_NAME="conan-server"
+IMAGE_NAME="${IMAGE_NAME:-ghcr.io/teriyakidactyl/docker-conan-exiles-server:trixie_dev}"
+DATA_ROOT="${DATA_ROOT:-$PWD/.conan-test-data}"
 
-# Check if container already exists
+mkdir -p "$DATA_ROOT/app" "$DATA_ROOT/world"
+
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-  echo "Container ${CONTAINER_NAME} already exists, stopping and removing it..."
-  docker stop ${CONTAINER_NAME} >/dev/null 2>&1
-  docker rm ${CONTAINER_NAME} >/dev/null 2>&1
+    docker rm -f "$CONTAINER_NAME" >/dev/null
 fi
 
-# Run the container detached
-echo "Starting Conan Exiles server container in detached mode..."
 docker run -d \
-  --name ${CONTAINER_NAME} \
-  -p 7777:7777/udp \
-  -p 7778:7778/udp \
-  -p 27015:27015/udp \
-  -p 7777:7777/tcp \
-  -p 25575:25575/tcp \
-  -e SERVER_NAME="Teriyakolypse" \
-  -e SERVER_PLAYER_PASS="MySecretPassword" \
-  -e SERVER_ADMIN_PASS="MySecretPasswordAdmin" \
-  -e SERVER_NUDITY_POLICY="1" \
-  -e SERVER_REGION_ID="1" \
-  ${IMAGE_NAME}
-
-  btop
-  
+    --name "$CONTAINER_NAME" \
+    --stop-timeout 135 \
+    -p 7777:7777/udp \
+    -p 7778:7778/udp \
+    -p 27015:27015/udp \
+    -p 7777:7777/tcp \
+    -p 25575:25575/tcp \
+    -e SERVER_NAME="TestServer" \
+    -e SERVER_PLAYER_PASS="testpassword" \
+    -e SERVER_ADMIN_PASS="testadminpassword" \
+    -v "$DATA_ROOT/world:/world" \
+    -v "$DATA_ROOT/app:/app" \
+    "$IMAGE_NAME"

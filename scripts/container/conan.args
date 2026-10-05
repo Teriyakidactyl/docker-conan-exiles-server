@@ -1,0 +1,6 @@
+ConanSandbox
+-log
+-console
+-Port=$SERVER_PORT
+-QueryPort=$SERVER_QUERY_PORT
+-MaxPlayers=$SERVER_MAX_PLAYERS

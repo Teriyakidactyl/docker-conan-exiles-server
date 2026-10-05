@@ -2,56 +2,70 @@ name: Build Conan Exiles Server Docker Images
 
 on:
   push:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
     paths:
-      - 'Dockerfile'
       - 'dockerfile'
+      - 'docker-compose.yml'
       - '.github/workflows/**'
       - 'scripts/**'
+      - 'tests/**'
   pull_request:
-    branches:
-      - dev
-      - main
+    branches: [dev, main]
     paths:
-      - 'Dockerfile'
       - 'dockerfile'
+      - 'docker-compose.yml'
+      - 'README.md'
       - '.github/workflows/**'
       - 'scripts/**'
-  workflow_dispatch:  # Allows manual triggering
+      - 'tests/**'
+  workflow_dispatch:
 
-# Add concurrency control to cancel in-progress workflows when new commits are pushed
+permissions:
+  contents: read
+  packages: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-# Global environment variables used throughout the workflow
 env:
-  # Registry information
   REGISTRY_IMAGE: ghcr.io/teriyakidactyl/docker-conan-exiles-server
-  
-  # Base image registry
   BASE_REGISTRY_IMAGE: ghcr.io/teriyakidactyl/docker-steamcmd-server
-  
-  # Matrix Configuration - Base image tags to build upon
-  # These should match the available tags from the base image
   MATRIX_BASE_TAGS: |
-    trixie_wine-staging
-    bookworm_wine-staging
-    trixie_wine-stable
-    bookworm_wine-stable
-    
-  # Target platforms
+    trixie
+    bookworm
   MATRIX_PLATFORMS: |
     linux/amd64
     linux/arm64
 
 jobs:
-  # Setup job to process matrix values from environment variables
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell scripts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck gettext-base
+          find scripts tests -type f -name '*.sh' -print0 | xargs -0 -r bash -n
+          find scripts tests -type f -name '*.sh' -print0 | xargs -0 -r shellcheck --severity=error
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: dockerfile
+          failure-threshold: error
+      - name: Test Conan contracts
+        run: |
+          for test_script in tests/test_*.sh; do
+            bash "$test_script"
+          done
+      - name: Validate Compose
+        run: docker compose config >/dev/null
+
   setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 5  # Set timeout limit
+    timeout-minutes: 5
     outputs:
       base-tags: ${{ steps.set-matrix.outputs.base-tags }}
       platforms: ${{ steps.set-matrix.outputs.platforms }}
@@ -59,127 +73,75 @@ jobs:
       - id: set-matrix
         name: Process matrix configurations
         run: |
-          # Process the multiline env vars into JSON arrays for matrix strategy
-          # Remove empty lines, add quotes, convert to JSON array
           BASE_TAGS=$(echo '${{ env.MATRIX_BASE_TAGS }}' | grep -v '^$' | awk '{print "\""$0"\""}' | paste -sd, | awk '{print "["$0"]"}')
           PLATFORMS=$(echo '${{ env.MATRIX_PLATFORMS }}' | grep -v '^$' | awk '{print "\""$0"\""}' | paste -sd, | awk '{print "["$0"]"}')
-          
-          # Echo the values for debugging
-          echo "Generated base-tags: $BASE_TAGS"
-          echo "Generated platforms: $PLATFORMS"
-          
-          # Set the outputs
-          echo "base-tags=$BASE_TAGS" >> $GITHUB_OUTPUT
-          echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
+          echo "base-tags=$BASE_TAGS" >> "$GITHUB_OUTPUT"
+          echo "platforms=$PLATFORMS" >> "$GITHUB_OUTPUT"
 
-  # Build job that creates individual architecture-specific images
   build:
-    needs: setup
+    needs: [quality, setup]
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # Set timeout limit
+    timeout-minutes: 60
     strategy:
       matrix:
         base_tag: ${{ fromJson(needs.setup.outputs.base-tags) }}
         platform: ${{ fromJson(needs.setup.outputs.platforms) }}
-      fail-fast: false  # Continue other matrix builds if one fails
-
+      fail-fast: false
     steps:
-      # Check out the repository code
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      # Set up QEMU for multi-platform builds
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
         with:
           platforms: ${{ matrix.platform }}
-
-      # Set up Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        with:
-          install: true
-
-      # Log in to GitHub Container Registry (only for pushes, not PRs)
+      - uses: docker/setup-buildx-action@v3
       - name: Log in to GitHub Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
-
-      # Prepare tag variables
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Prepare tag variables
-        id: prep-tags
         run: |
-          # Extract architecture from platform
-          ARCHITECTURE=$(echo ${{ matrix.platform }} | cut -d'/' -f2)
-          echo "ARCHITECTURE=$ARCHITECTURE" >> $GITHUB_ENV
-          
-          # Determine base image branch suffix based on current branch
+          ARCHITECTURE=$(echo '${{ matrix.platform }}' | cut -d'/' -f2)
+          echo "ARCHITECTURE=$ARCHITECTURE" >> "$GITHUB_ENV"
+
           if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-            BASE_BRANCH_SUFFIX="_dev"
+            BRANCH_SUFFIX="_dev"
           else
-            BASE_BRANCH_SUFFIX=""
+            BRANCH_SUFFIX=""
           fi
-          echo "BASE_BRANCH_SUFFIX=$BASE_BRANCH_SUFFIX" >> $GITHUB_ENV
-          
-          # Pull a published multi-architecture base alias. Buildx chooses the
-          # requested platform; do not couple this derivative to the base's
-          # internal architecture-tag spelling.
-          BASE_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}"
-          echo "BASE_TAG=$BASE_TAG" >> $GITHUB_ENV
-          
-          # Full tags are unique per compatibility alias. Short distro and
-          # branch/latest aliases are published only from Wine staging so
-          # stable and staging jobs cannot race to overwrite the same tag.
-          FULL_TAG="${{ matrix.base_tag }}${BASE_BRANCH_SUFFIX}_$ARCHITECTURE"
-          echo "FULL_TAG=$FULL_TAG" >> $GITHUB_ENV
-          echo "SIMPLE_TAG=" >> $GITHUB_ENV
-          echo "BRANCH_TAG=" >> $GITHUB_ENV
-          echo "LATEST_ARCH_TAG=" >> $GITHUB_ENV
+          echo "BRANCH_SUFFIX=$BRANCH_SUFFIX" >> "$GITHUB_ENV"
+          echo "BASE_TAG=${{ matrix.base_tag }}$BRANCH_SUFFIX" >> "$GITHUB_ENV"
+          echo "VERSIONED_TAG=${{ matrix.base_tag }}${BRANCH_SUFFIX}_$ARCHITECTURE" >> "$GITHUB_ENV"
+          echo "BRANCH_TAG=${{ github.ref_name }}_$ARCHITECTURE" >> "$GITHUB_ENV"
 
-          if [[ "${{ matrix.base_tag }}" == *_wine-staging ]]; then
-            BASE_DIST=$(echo "${{ matrix.base_tag }}" | cut -d'_' -f1)
-            SIMPLE_TAG="${BASE_DIST}${BASE_BRANCH_SUFFIX}_$ARCHITECTURE"
-            echo "SIMPLE_TAG=$SIMPLE_TAG" >> $GITHUB_ENV
-            echo "BRANCH_TAG=${{ github.ref_name }}_$ARCHITECTURE" >> $GITHUB_ENV
-
-            if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ matrix.base_tag }}" == "trixie_wine-staging" ]]; then
-              echo "LATEST_ARCH_TAG=latest_$ARCHITECTURE" >> $GITHUB_ENV
-            fi
+          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ matrix.base_tag }}" == "trixie" ]]; then
+            echo "LATEST_ARCH_TAG=latest_$ARCHITECTURE" >> "$GITHUB_ENV"
+          else
+            echo "LATEST_ARCH_TAG=" >> "$GITHUB_ENV"
           fi
-          
-          # Set build date for metadata
-          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
 
-      # Generate metadata for Docker image, including tags
-      - name: Generate Docker metadata
-        id: meta
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
+      - id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY_IMAGE }}
           tags: |
-            type=raw,value=${{ env.FULL_TAG }}
-            ${{ env.SIMPLE_TAG != '' && format('type=raw,value={0}', env.SIMPLE_TAG) || '' }}
-            ${{ env.BRANCH_TAG != '' && format('type=raw,value={0}', env.BRANCH_TAG) || '' }}
+            type=raw,value=${{ env.VERSIONED_TAG }}
+            type=raw,value=${{ env.BRANCH_TAG }}
             ${{ env.LATEST_ARCH_TAG != '' && format('type=raw,value={0}', env.LATEST_ARCH_TAG) || '' }}
           labels: |
-            org.opencontainers.image.title=Conan Exiles Server Docker Image
-            org.opencontainers.image.description=Docker image for Conan Exiles dedicated server based on docker-steamcmd-server
+            org.opencontainers.image.title=Conan Exiles Enhanced Server Docker Image
+            org.opencontainers.image.description=Native Linux Conan Exiles Enhanced dedicated server based on docker-steamcmd-server
             org.opencontainers.image.vendor=TeriyakiDactyl
             org.opencontainers.image.version=${{ github.ref_name }}
             org.opencontainers.image.created=${{ env.BUILD_DATE }}
             org.opencontainers.image.revision=${{ github.sha }}
             com.example.git.branch=${{ github.ref_name }}
             com.example.base.image=${{ env.BASE_REGISTRY_IMAGE }}:${{ env.BASE_TAG }}
-            com.example.base.branch=${{ github.ref_name }}
 
-      # Build and push Docker image
-      - name: Build and push Docker image
-        id: docker_build
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: .
           file: ./dockerfile
@@ -192,12 +154,9 @@ jobs:
             BUILD_DATE=${{ env.BUILD_DATE }}
             BRANCH_NAME=${{ github.ref_name }}
           platforms: ${{ matrix.platform }}
-          cache-from: |
-            type=gha,scope=${{ matrix.base_tag }}-${{ matrix.platform }}
-          cache-to: |
-            type=gha,scope=${{ matrix.base_tag }}-${{ matrix.platform }},mode=max
+          cache-from: type=gha,scope=${{ matrix.base_tag }}-${{ matrix.platform }}
+          cache-to: type=gha,scope=${{ matrix.base_tag }}-${{ matrix.platform }},mode=max
 
-  # Create multi-architecture manifests
   create-manifest:
     needs: [setup, build]
     runs-on: ubuntu-latest
@@ -206,88 +165,49 @@ jobs:
     strategy:
       matrix:
         base_tag: ${{ fromJson(needs.setup.outputs.base-tags) }}
-    
     steps:
-      # Add a debug step to verify the outputs
-      - name: Debug job outputs
-        run: |
-          echo "setup.outputs.base-tags: '${{ needs.setup.outputs.base-tags }}'"
-          
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
-          
-      - name: Generate manifest tag names
-        id: manifest-tags
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare manifest tags
         run: |
-          BRANCH_SUFFIX=""
-          if [[ "${{ github.ref }}" != "refs/heads/main" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
             BRANCH_SUFFIX="_dev"
+          else
+            BRANCH_SUFFIX=""
           fi
 
-          BASE_DIST=$(echo "${{ matrix.base_tag }}" | cut -d'_' -f1)
-          echo "FULL_MANIFEST_TAG=${{ matrix.base_tag }}${BRANCH_SUFFIX}" >> $GITHUB_ENV
-          echo "HAS_SIMPLE_TAG=false" >> $GITHUB_ENV
-          echo "HAS_LATEST_TAG=false" >> $GITHUB_ENV
-
-          if [[ "${{ matrix.base_tag }}" == *_wine-staging ]]; then
-            echo "SIMPLE_MANIFEST_TAG=${BASE_DIST}${BRANCH_SUFFIX}" >> $GITHUB_ENV
-            echo "HAS_SIMPLE_TAG=true" >> $GITHUB_ENV
+          echo "MANIFEST_TAG=${{ matrix.base_tag }}$BRANCH_SUFFIX" >> "$GITHUB_ENV"
+          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ matrix.base_tag }}" == "trixie" ]]; then
+            echo "HAS_LATEST_TAG=true" >> "$GITHUB_ENV"
+          else
+            echo "HAS_LATEST_TAG=false" >> "$GITHUB_ENV"
           fi
 
-          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ matrix.base_tag }}" == "trixie_wine-staging" ]]; then
-            echo "LATEST_TAG=latest" >> $GITHUB_ENV
-            echo "HAS_LATEST_TAG=true" >> $GITHUB_ENV
-          fi
-      
-      # Create and push multi-architecture manifests using buildx imagetools
       - name: Create and push multi-architecture manifests
         run: |
-          if [[ "${{ env.HAS_SIMPLE_TAG }}" == "true" ]]; then
-            docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }} \
-              ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_amd64 \
-              ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}_arm64
-            echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.SIMPLE_MANIFEST_TAG }}"
-          fi
+          docker buildx imagetools create --tag "${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }}" \
+            "${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }}_amd64" \
+            "${{ env.REGISTRY_IMAGE }}:${{ env.MANIFEST_TAG }}_arm64"
 
-          # Full aliases retain the compatibility layer and cannot collide.
-          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }} \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}_amd64 \
-            ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}_arm64
-          
-          echo "::notice::Successfully created manifest for ${{ env.REGISTRY_IMAGE }}:${{ env.FULL_MANIFEST_TAG }}"
-          
-          # Create latest tag if applicable
           if [[ "${{ env.HAS_LATEST_TAG }}" == "true" ]]; then
-            docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:latest \
-              ${{ env.REGISTRY_IMAGE }}:latest_amd64 \
-              ${{ env.REGISTRY_IMAGE }}:latest_arm64
-              
-            echo "::notice::Successfully created 'latest' multi-architecture manifest"
+            docker buildx imagetools create --tag "${{ env.REGISTRY_IMAGE }}:latest" \
+              "${{ env.REGISTRY_IMAGE }}:latest_amd64" \
+              "${{ env.REGISTRY_IMAGE }}:latest_arm64"
           fi
 
-  # Notification job
   notify:
     needs: [create-manifest]
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && github.event_name != 'pull_request'
     steps:
-      - name: Set status
-        id: status
+      - name: Report workflow status
         run: |
           if [[ "${{ needs.create-manifest.result }}" == "success" ]]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "message=Docker images successfully built and pushed" >> $GITHUB_OUTPUT
+            echo "::notice::Docker images successfully built and pushed"
           else
-            echo "status=failure" >> $GITHUB_OUTPUT
-            echo "message=Failed to build or push some Docker images" >> $GITHUB_OUTPUT
+            echo "::error::Failed to build or push some Docker images"
+            exit 1
           fi
-      
-      # Update GitHub status with workflow results
-      - name: Update status
-        run: |
-          echo "::notice::Workflow completed with status: ${{ steps.status.outputs.status }}"
-          echo "::notice::${{ steps.status.outputs.message }}"
