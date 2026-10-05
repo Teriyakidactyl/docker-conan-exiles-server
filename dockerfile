@@ -48,7 +48,10 @@ USER root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libatomic1 \
+        libgcc-s1 \
+        libicu-dev \
         libpulse0 \
+        libstdc++6 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY scripts ${SCRIPTS}
