@@ -1,29 +1,15 @@
 #!/bin/bash
 
-# Simple script to run Valheim container with a custom command
+set -Eeuo pipefail
 
-# Container name
 CONTAINER_NAME="conan-server"
+IMAGE_NAME="${IMAGE_NAME:-ghcr.io/teriyakidactyl/docker-conan-exiles-server:trixie_dev}"
 
-# Image name
-IMAGE_NAME="ghcr.io/teriyakidactyl/docker-conan-exiles-server:trixie_dev"
-
-# Check if container already exists
 if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-  echo "Container ${CONTAINER_NAME} already exists, stopping and removing it..."
-  docker stop ${CONTAINER_NAME} >/dev/null 2>&1
-  docker rm ${CONTAINER_NAME} >/dev/null 2>&1
+    docker rm -f "$CONTAINER_NAME" >/dev/null
 fi
 
-# Run the container with an overridden command
-echo "Starting Valheim server container with bash shell instead of default CMD..."
-docker run -it \
-  --name ${CONTAINER_NAME} \
-  -e SERVER_NAME="TestServer" \
-  -e WORLD_NAME="TestWorld" \
-  -e SERVER_PASS="testpassword" \
-  ${IMAGE_NAME} \
-  /bin/bash
-
-# Note: This will drop you directly into a bash shell inside the container
-# From there you can manually execute scripts or troubleshoot
+docker run --rm -it \
+    --name "$CONTAINER_NAME" \
+    --entrypoint /bin/bash \
+    "$IMAGE_NAME"
