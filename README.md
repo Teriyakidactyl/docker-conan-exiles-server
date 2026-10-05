@@ -51,7 +51,7 @@ Existing installations are migrated conservatively on the first native start:
 - If both an uppercase and lowercase database copy exist, startup fails instead
   of choosing one and risking the wrong world.
 
-Legacy files are not deleted merely because a native equivalent exists.
+Legacy files are not deleted merely because a native equivalent exists. The first native boot can take longer because SteamCMD must materialize the Linux payload before the migration hook runs.
 
 ## Configuration
 
